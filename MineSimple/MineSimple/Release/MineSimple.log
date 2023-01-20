@@ -1,0 +1,8 @@
+﻿  MineSimple.cpp
+C:\Users\_MegaPussyDestroer_\source\repos\MineSimple\MineSimple\MineSimple.cpp(111,40): warning C4244: =: преобразование "double" в "int", возможна потеря данных
+  Создание кода
+  0 of 13 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Создание кода завершено
+  MineSimple.vcxproj -> C:\Users\_MegaPussyDestroer_\source\repos\MineSimple\Release\MineSimple.exe

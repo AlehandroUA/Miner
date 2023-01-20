@@ -1,0 +1,3 @@
+﻿  MineSimple.cpp
+C:\Users\_MegaPussyDestroer_\source\repos\MineSimple\MineSimple\MineSimple.cpp(16,32): warning C4244: =: преобразование "double" в "int", возможна потеря данных
+  MineSimple.vcxproj -> C:\Users\_MegaPussyDestroer_\source\repos\MineSimple\Debug\MineSimple.exe
