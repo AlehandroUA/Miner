@@ -4,7 +4,8 @@
 #include <windows.h>
 
 FILE* fp;
-char Users[] = "D:\\users.txt";
+char Temp_U[] = "user_temp.txt";
+char Users[] = "users.txt";
 const int KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54;
 const int Enter = 13, F = 102, H = 104;
 const int Mine = 9;
@@ -18,9 +19,11 @@ void HelpMenu() {
     printf("\t\tEnter - Взаємодія з полем\n\t\tF - Поставити флаг\n\t\tУПРАВЛІННЯ:\n\t\t 8  \n\t\t4 6 \t \n\t\t 2\n");
     system("pause");
 }
-void GameStart(int MinesCount, int** FieldMines, int** FieldView, int Height, int Width) {
+void GameStart(int MinesCount, int** FieldMines, int** FieldView, int Height, int Width,int Difficulty) {
     const int FieldFlag = 11, FieldOpen = 10, FieldCursor = -1, FieldClosed = 0;
     int End = 1, i = 0, j = 0, iO = 0, jO = 0;
+    FILE* fp_temp;
+    char Name[20];
     FieldView[0][0] = FieldCursor;
     int MinesStat = MinesCount, Flags = MinesCount, Cursor = 0;
     system("cls");
@@ -119,8 +122,11 @@ void GameStart(int MinesCount, int** FieldMines, int** FieldView, int Height, in
             system("pause");
         }
     } while (End);
-    fp = fopen(Users, "w");
-    fprintf(fp, "%d\n", MinesCount);
+    fp_temp = fopen(Temp_U, "r");
+    fscanf(fp_temp, "%s", Name);
+    fclose(fp_temp);
+    fp = fopen(Users, "a");
+    fprintf(fp,"%s\n%d\n%d\n%d\n",Name,MinesCount, Difficulty,Height*Width);
     fclose(fp);
 }
 void FieldFilling(int Difficulty, int Height, int Width) {
@@ -158,7 +164,7 @@ void FieldFilling(int Difficulty, int Height, int Width) {
             MinesLeft--;
         }
     } while (MinesLeft != 0);
-    GameStart(Flags, Playground, PlaygroundOn, Height, Width);
+    GameStart(Flags, Playground, PlaygroundOn, Height, Width, Difficulty);
     for (i = 0; i < Height; i++) {
         free(PlaygroundOn[i]);
         free(Playground[i]);
@@ -215,13 +221,12 @@ int DifficultyMenu() {
     FieldSize(Diffuculty);
 }
 void InputUsername() {
+    system("cls");
     char Username[20];
-    printf("Введіть нік:");
+    printf("\n\t\tВведіть нік: ");
     scanf("%s", Username);
-    fp = fopen(Users, "w");
+    fp = fopen(Temp_U, "w");
     fprintf(fp, "%s\n", Username);
-    fgets(Username, 20, fp);
-    printf("Current user is %s", Username);
     fclose(fp);
 }
 void MenuHello() {
@@ -241,7 +246,7 @@ void MenuHello() {
         case KP_2:MenuOption < 2 ? MenuOption++ : MenuOption = 0; break;
         case Enter:
             switch (MenuOption) {
-            case 0:DifficultyMenu(); break;
+            case 0: InputUsername(); DifficultyMenu(); break;
             case 1:HelpMenu(); break;
             case 2:Exit = 0; break;
             }
