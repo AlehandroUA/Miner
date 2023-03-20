@@ -10,10 +10,55 @@ const int KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54;
 const int Enter = 13, F = 102, H = 104;
 const int Mine = 9;
 
-struct User {
+ struct User{
     char Name[15];
-    int score;
+    int Score;
+    int Difficulty;
+    int Sizemap;
 };
+
+ int lines() {
+     size_t lines_count = 0;
+     fp = fopen(Users, "r");
+     while (!feof(fp))
+     {
+         if (fgetc(fp) == '\n')
+             lines_count++;
+     }
+     lines_count++;
+     fclose(fp);
+     return lines_count-1;
+ }
+void FileOpen() {
+    system("cls");
+    int i = 0, CountOfLines = lines(), TempScore = 0, TempSizeMap = 0, TempDifficuty=0, Sum=0;
+    bool exit = true;
+    char TempName[20];
+    struct User* ptr;
+    ptr = (struct User*)malloc(CountOfLines * sizeof(struct User));
+    if ((fp = fopen(Users, "r")) == NULL)
+    {
+        printf("\n\tЗаписів нема! Ви - перший!\n");
+        system("pause");
+    }
+    while (fscanf(fp, "%s%d%d%d",
+        (ptr + i)->Name, &((ptr + i)->Score), &((ptr + i)->Difficulty), &((ptr + i)->Sizemap)) != EOF) {
+        //printf("%s %d %d %d\n", (ptr + i)->Name, (ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
+        i++;
+    }
+    /*for (i = 0; i < CountOfLines; i++) {
+        do {
+            exit = false;
+            for (i = 0; i < CountOfLines; i++) {
+                if ((ptr + 1 + i)->Sizemap > 0) {
+                    if((ptr + 1 + i)->Sizemap)
+                }
+            }
+        } while (exit);
+    }*/
+    fclose(fp);
+    free(ptr);
+}
 void HelpMenu() {
     system("cls");
     printf("\t\tEnter - Взаємодія з полем\n\t\tF - Поставити флаг\n\t\tУПРАВЛІННЯ:\n\t\t 8  \n\t\t4 6 \t \n\t\t 2\n");
@@ -126,7 +171,7 @@ void GameStart(int MinesCount, int** FieldMines, int** FieldView, int Height, in
     fscanf(fp_temp, "%s", Name);
     fclose(fp_temp);
     fp = fopen(Users, "a");
-    fprintf(fp,"%s\n%d\n%d\n%d\n",Name,MinesCount, Difficulty,Height*Width);
+    fprintf(fp,"%s %d %d %d \n",Name,MinesCount, Difficulty,Height*Width);
     fclose(fp);
 }
 void FieldFilling(int Difficulty, int Height, int Width) {
@@ -258,20 +303,20 @@ void MenuHello() {
 }
 int main() {
     SetConsoleOutputCP(1251);
-    MenuHello();
+    FileOpen();
 }
 /*алгоритм открытия ячеек
 
-  файл
+  файл +
 
   вин апи
 
   Осталось доработать:
   -Изменить вывод текста побуквенно
-  - Добавить профиль игрока
-        - Ввод ника
-        - Проверка файла
-  - Добавить таблицу рекордов
+  - Добавить профиль игрока +
+        - Ввод ника +
+        - Проверка файла +
+  - Добавить таблицу рекордов -+
   - Меню по центру
   - Цветной текст
   - Алгоритм открытия
