@@ -15,6 +15,7 @@ const int Mine = 9;
     int Score;
     int Difficulty;
     int Sizemap;
+    int Sum;
 };
 
  int lines() {
@@ -31,9 +32,9 @@ const int Mine = 9;
  }
 void FileOpen() {
     system("cls");
-    int i = 0, CountOfLines = lines(), TempScore = 0, TempSizeMap = 0, TempDifficuty=0, Sum=0;
+    int i = 0, CountOfLines = lines(), TempScore = 0, TempSizeMap = 0, TempDifficuty=0, TempSum=0;
     bool exit = true;
-    char TempName[20];
+    char TempName[15];
     struct User* ptr;
     ptr = (struct User*)malloc(CountOfLines * sizeof(struct User));
     if ((fp = fopen(Users, "r")) == NULL)
@@ -43,19 +44,42 @@ void FileOpen() {
     }
     while (fscanf(fp, "%s%d%d%d",
         (ptr + i)->Name, &((ptr + i)->Score), &((ptr + i)->Difficulty), &((ptr + i)->Sizemap)) != EOF) {
+        (ptr + i)->Sum = (ptr + i)->Difficulty + (ptr + i)->Sizemap - (ptr + i)->Score;
         //printf("%s %d %d %d\n", (ptr + i)->Name, (ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
         i++;
     }
-    /*for (i = 0; i < CountOfLines; i++) {
+    for (i = 0; i < CountOfLines; i++) {
         do {
             exit = false;
             for (i = 0; i < CountOfLines; i++) {
                 if ((ptr + 1 + i)->Sizemap > 0) {
-                    if((ptr + 1 + i)->Sizemap)
+                    if ((ptr + i)->Sum < (ptr + 1 + i)->Sum) {
+                        TempSum = (ptr + i)->Sum;
+                        TempScore = (ptr + i)->Score;
+                        TempSizeMap = (ptr + i)->Sizemap;
+                        TempDifficuty = (ptr + i)->Difficulty;
+                        strcpy(TempName, (ptr + i)->Name);
+
+                        (ptr + i)->Sum = (ptr + 1 + i)->Sum;
+                        (ptr + i)->Score = (ptr + 1 + i)->Score;
+                        (ptr + i)->Sizemap = (ptr + 1 + i)->Sizemap;
+                        (ptr + i)->Difficulty= (ptr + 1 + i)->Difficulty;
+                        strcpy((ptr + i)->Name,(ptr + 1 + i)->Name);
+
+                        (ptr + 1 + i)->Sum = TempSum;
+                        (ptr + 1 + i)->Score=TempScore;
+                        (ptr + 1 + i)->Sizemap=TempSizeMap;
+                        (ptr + 1 + i)->Difficulty= TempDifficuty;
+                        strcpy((ptr +1 +i)->Name, TempName);
+                        exit = true;
+                    }
                 }
             }
         } while (exit);
-    }*/
+    }
+    for (i = 0; i < CountOfLines; i++) {
+        printf("%s %d %d %d\n", (ptr + i)->Name, (ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
+    }
     fclose(fp);
     free(ptr);
 }
@@ -179,10 +203,8 @@ void FieldFilling(int Difficulty, int Height, int Width) {
     int MinesLeft = 0, Flags = 0;
     system("cls");
     Flags = MinesLeft = Height * Width * (Difficulty / 100.0);
-    int** Playground;
-    int** PlaygroundOn;
-    Playground = (int**)malloc(Height * sizeof(int*));
-    PlaygroundOn = (int**)malloc(Height * sizeof(int*));
+    int** Playground = (int**)malloc(Height * sizeof(int*));
+    int** PlaygroundOn= (int**)malloc(Height * sizeof(int*));
     for (i = 0; i < Height; i++)
     {
         Playground[i] = (int*)malloc(Width * sizeof(int));
@@ -267,8 +289,8 @@ int DifficultyMenu() {
 }
 void InputUsername() {
     system("cls");
-    char Username[20];
-    printf("\n\t\tВведіть нік: ");
+    char Username[15];
+    printf("\n\t\tВведіть нік(30 символів): ");
     scanf("%s", Username);
     fp = fopen(Temp_U, "w");
     fprintf(fp, "%s\n", Username);
