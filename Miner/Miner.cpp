@@ -30,7 +30,7 @@ const int Mine = 9;
      fclose(fp);
      return lines_count-1;
  }
-void FileOpen() {
+ int FileOpen(int Comparison,char Username[15]) {
     system("cls");
     int i = 0, CountOfLines = lines(), TempScore = 0, TempSizeMap = 0, TempDifficuty=0, TempSum=0;
     bool exit = true;
@@ -39,14 +39,24 @@ void FileOpen() {
     ptr = (struct User*)malloc(CountOfLines * sizeof(struct User));
     if ((fp = fopen(Users, "r")) == NULL)
     {
-        printf("\n\tЗаписів нема! Ви - перший!\n");
-        system("pause");
+        if (Comparison == 0) {
+            printf("\n\tЗаписів нема! Ви - перший!\n");
+            system("pause");
+        }
     }
     while (fscanf(fp, "%s%d%d%d",
         (ptr + i)->Name, &((ptr + i)->Score), &((ptr + i)->Difficulty), &((ptr + i)->Sizemap)) != EOF) {
+        if (Comparison == 1) {
+            if (strcmp(Username, (ptr + i)->Name) == 0) {
+                return 1;
+            }
+        }
         (ptr + i)->Sum = (ptr + i)->Difficulty + (ptr + i)->Sizemap - (ptr + i)->Score;
         //printf("%s %d %d %d\n", (ptr + i)->Name, (ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
         i++;
+    }
+    if (Comparison == 1) {
+        return 0;
     }
     for (i = 0; i < CountOfLines; i++) {
         do {
@@ -78,10 +88,12 @@ void FileOpen() {
         } while (exit);
     }
     for (i = 0; i < CountOfLines; i++) {
-        printf("%s %d %d %d\n", (ptr + i)->Name, (ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
+        printf("%d Місце - Нік: %s; Мін залишилось: %d; Відсоток заповненості поля: %d%%; Розмір поля: %d\n",i+1, (ptr + i)->Name, (ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
     }
+    system("pause");
     fclose(fp);
     free(ptr);
+    return 0;
 }
 void HelpMenu() {
     system("cls");
@@ -289,9 +301,18 @@ int DifficultyMenu() {
 }
 void InputUsername() {
     system("cls");
+    int Comparison;
     char Username[15];
-    printf("\n\t\tВведіть нік(30 символів): ");
-    scanf("%s", Username);
+    do {
+        system("cls");
+        printf("\n\t\tВведіть нік(15 символів): ");
+        scanf("%s", Username);
+        Comparison = FileOpen(1, Username);
+        if (Comparison == 1) {
+            printf("Нік зайнято!\n");
+            system("pause");
+        }
+    } while (Comparison == 1);
     fp = fopen(Temp_U, "w");
     fprintf(fp, "%s\n", Username);
     fclose(fp);
@@ -304,18 +325,20 @@ void MenuHello() {
         switch (1) {
         case 1:  MenuOption == 0 ? printf("\t> Нова гра\n") : printf("\tНова гра\n");
         case 2:  MenuOption == 1 ? printf("\t> Допомога\n") : printf("\tДопомога\n");
-        case 3:  MenuOption == 2 ? printf("\t> Вихід\n") : printf("\tВихід\n");
+        case 3:  MenuOption == 2 ? printf("\t> Таблиця лідерів\n") : printf("\tТаблиця лідерів\n");
+        case 4:  MenuOption == 3 ? printf("\t> Вихід\n") : printf("\tВихід\n");
         }
         MenuControl = _getch();
         printf("%d", MenuControl);
         switch (MenuControl) {
-        case KP_8: MenuOption > 0 ? MenuOption-- : MenuOption = 2; break;
-        case KP_2:MenuOption < 2 ? MenuOption++ : MenuOption = 0; break;
+        case KP_8: MenuOption > 0 ? MenuOption-- : MenuOption = 3; break;
+        case KP_2:MenuOption < 3 ? MenuOption++ : MenuOption = 0; break;
         case Enter:
             switch (MenuOption) {
             case 0: InputUsername(); DifficultyMenu(); break;
             case 1:HelpMenu(); break;
-            case 2:Exit = 0; break;
+            case 2:FileOpen(0,0); break;
+            case 3:Exit = 0; break;
             }
             break;
         }
@@ -325,7 +348,7 @@ void MenuHello() {
 }
 int main() {
     SetConsoleOutputCP(1251);
-    FileOpen();
+    MenuHello();
 }
 /*алгоритм открытия ячеек
 
@@ -338,7 +361,10 @@ int main() {
   - Добавить профиль игрока +
         - Ввод ника +
         - Проверка файла +
-  - Добавить таблицу рекордов -+
+  - Добавить таблицу рекордов +
+        - распознование +
+  - Добавить АККАУНТЫ для игроков
+        - пароли и прочая лабурдень
   - Меню по центру
   - Цветной текст
   - Алгоритм открытия
