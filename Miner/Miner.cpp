@@ -6,21 +6,24 @@
 FILE* fp;
 char Temp_U[] = "user_temp.txt";
 char Users[] = "users.txt";
-const int KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54;
+const int KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54, K_ONE=49;
 const int Enter = 13, F = 102, H = 104;
 const int Mine = 9;
 
  struct User{
     char Name[15];
+    char Password[30];
     int Score;
     int Difficulty;
     int Sizemap;
     int Sum;
 };
-
  int lines() {
      size_t lines_count = 0;
-     fp = fopen(Users, "r");
+     if ((fp = fopen(Users, "r+")) == NULL)
+     {
+         return 0;
+     }
      while (!feof(fp))
      {
          if (fgetc(fp) == '\n')
@@ -30,38 +33,43 @@ const int Mine = 9;
      fclose(fp);
      return lines_count-1;
  }
- int FileOpen(int Comparison,char Username[15]) {
+ int FileOpen(int Comparison, char Name[15], char Password[30]) {
     system("cls");
-    int i = 0, CountOfLines = lines(), TempScore = 0, TempSizeMap = 0, TempDifficuty=0, TempSum=0;
+    int i = 0, CountOfLines = lines(), TempScore = 0, TempSizeMap = 0, TempDifficuty=0, TempSum=0,CountOfLines_S= lines();
     bool exit = true;
-    char TempName[15];
+    char TempName[15], TempPassword[30];
     struct User* ptr;
-    ptr = (struct User*)malloc(CountOfLines * sizeof(struct User));
-    if ((fp = fopen(Users, "r")) == NULL)
+    if ((fp = fopen(Users, "r+")) == NULL)
     {
         if (Comparison == 0) {
             printf("\n\tЗаписів нема! Ви - перший!\n");
             system("pause");
         }
-    }
-    while (fscanf(fp, "%s%d%d%d",
-        (ptr + i)->Name, &((ptr + i)->Score), &((ptr + i)->Difficulty), &((ptr + i)->Sizemap)) != EOF) {
-        if (Comparison == 1) {
-            if (strcmp(Username, (ptr + i)->Name) == 0) {
-                return 1;
-            }
-        }
-        (ptr + i)->Sum = (ptr + i)->Difficulty + (ptr + i)->Sizemap - (ptr + i)->Score;
-        //printf("%s %d %d %d\n", (ptr + i)->Name, (ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
-        i++;
-    }
-    if (Comparison == 1) {
         return 0;
     }
-    for (i = 0; i < CountOfLines; i++) {
+    ptr = (struct User*)malloc(CountOfLines * sizeof(struct User));
+    while (CountOfLines!=0) {
+        fscanf(fp, "%s%s%d%d%d", (ptr + i)->Name, (ptr + i)->Password, &((ptr + i)->Score), &((ptr + i)->Difficulty), &((ptr + i)->Sizemap));
+        switch(Comparison){
+        case 1: if (strcmp(Name, (ptr + i)->Name) == 0)return 1; break;
+        case 2:  if (strcmp(Name, (ptr + i)->Name) == 0) {
+            if (strcmp(Password, (ptr + i)->Password) == 0)return -1;
+        } break;
+        }
+        (ptr + i)->Sum = (ptr + i)->Difficulty + (ptr + i)->Sizemap - (ptr + i)->Score;
+        printf("%s %s %d %d %d\n", (ptr + i)->Name, (ptr + i)->Password,(ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
+        i++;
+        CountOfLines--;
+    }
+    fclose(fp);
+    if (Comparison >= 1) {
+        return 0;
+    }
+
+    for (i = 0; i < CountOfLines_S; i++) {
         do {
             exit = false;
-            for (i = 0; i < CountOfLines; i++) {
+            for (i = 0; i < CountOfLines_S; i++) {
                 if ((ptr + 1 + i)->Sizemap > 0) {
                     if ((ptr + i)->Sum < (ptr + 1 + i)->Sum) {
                         TempSum = (ptr + i)->Sum;
@@ -69,29 +77,31 @@ const int Mine = 9;
                         TempSizeMap = (ptr + i)->Sizemap;
                         TempDifficuty = (ptr + i)->Difficulty;
                         strcpy(TempName, (ptr + i)->Name);
+                        strcpy(TempPassword, (ptr + i)->Password);
 
                         (ptr + i)->Sum = (ptr + 1 + i)->Sum;
                         (ptr + i)->Score = (ptr + 1 + i)->Score;
                         (ptr + i)->Sizemap = (ptr + 1 + i)->Sizemap;
                         (ptr + i)->Difficulty= (ptr + 1 + i)->Difficulty;
                         strcpy((ptr + i)->Name,(ptr + 1 + i)->Name);
+                        strcpy((ptr + i)->Password, (ptr + 1 + i)->Password);
 
                         (ptr + 1 + i)->Sum = TempSum;
                         (ptr + 1 + i)->Score=TempScore;
                         (ptr + 1 + i)->Sizemap=TempSizeMap;
                         (ptr + 1 + i)->Difficulty= TempDifficuty;
-                        strcpy((ptr +1 +i)->Name, TempName);
+                        strcpy((ptr + 1 + i)->Name, TempName);
+                        strcpy((ptr + 1 + i)->Password, TempPassword);
                         exit = true;
                     }
                 }
             }
         } while (exit);
     }
-    for (i = 0; i < CountOfLines; i++) {
+    for (i = 0; i < CountOfLines_S; i++) {
         printf("%d Місце - Нік: %s; Мін залишилось: %d; Відсоток заповненості поля: %d%%; Розмір поля: %d\n",i+1, (ptr + i)->Name, (ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
     }
     system("pause");
-    fclose(fp);
     free(ptr);
     return 0;
 }
@@ -104,7 +114,7 @@ void GameStart(int MinesCount, int** FieldMines, int** FieldView, int Height, in
     const int FieldFlag = 11, FieldOpen = 10, FieldCursor = -1, FieldClosed = 0;
     int End = 1, i = 0, j = 0, iO = 0, jO = 0;
     FILE* fp_temp;
-    char Name[20];
+    char Name[15], Password[30];
     FieldView[0][0] = FieldCursor;
     int MinesStat = MinesCount, Flags = MinesCount, Cursor = 0;
     system("cls");
@@ -204,10 +214,10 @@ void GameStart(int MinesCount, int** FieldMines, int** FieldView, int Height, in
         }
     } while (End);
     fp_temp = fopen(Temp_U, "r");
-    fscanf(fp_temp, "%s", Name);
+    fscanf(fp_temp, "%s%s", Name,Password);
     fclose(fp_temp);
     fp = fopen(Users, "a");
-    fprintf(fp,"%s %d %d %d \n",Name,MinesCount, Difficulty,Height*Width);
+    fprintf(fp,"%s %s %d %d %d \n",Name, Password, MinesCount, Difficulty,Height*Width);
     fclose(fp);
 }
 void FieldFilling(int Difficulty, int Height, int Width) {
@@ -299,29 +309,49 @@ int DifficultyMenu() {
     } while (Exit);
     FieldSize(Diffuculty);
 }
+char* InputPassword() {
+    char Password[31];
+    do {
+        system("cls");
+        printf("Введіть пароль(до 30 символів)!: ");
+        scanf("%s", Password);
+    } while (strlen(Password) > 30);
+    return Password;
+}
 void InputUsername() {
     system("cls");
     int Comparison;
-    char Username[15];
+    char Password[31];
+    char Username[16];
     do {
-        system("cls");
-        printf("\n\t\tВведіть нік(15 символів): ");
-        scanf("%s", Username);
-        Comparison = FileOpen(1, Username);
+        do {
+            NicknameEnter:
+            system("cls");
+            printf("\n\t\tВведіть нік(15 символів): ");
+            scanf("%s", Username);
+        } while (strlen(Username)>15);
+        Comparison = FileOpen(1, Username,0);
         if (Comparison == 1) {
-            printf("Нік зайнято!\n");
-            system("pause");
+            system("cls");
+            printf("Нік зайнято! Введіть:\n1 - новий нік\n2- пароль\n");
+            switch (_getch()) {
+            case K_ONE: goto NicknameEnter; break;
+            case KP_2:strcpy(Password,InputPassword()); Comparison = FileOpen(2,Username, Password); break;
+            }
         }
     } while (Comparison == 1);
+    if (Comparison != -1) {
+        strcpy(Password, InputPassword());
+    }
     fp = fopen(Temp_U, "w");
-    fprintf(fp, "%s\n", Username);
+    fprintf(fp, "%s %s\n", Username, Password);
     fclose(fp);
 }
 void MenuHello() {
     int MenuControl = 0, MenuOption = 0;
     int Exit = 1;
     do {
-        printf("\t\tСАПЕР V 0.0.4. BETA \n\n");
+        printf("\t\tСАПЕР V 2.2.8. BETA \n\n");
         switch (1) {
         case 1:  MenuOption == 0 ? printf("\t> Нова гра\n") : printf("\tНова гра\n");
         case 2:  MenuOption == 1 ? printf("\t> Допомога\n") : printf("\tДопомога\n");
@@ -337,7 +367,7 @@ void MenuHello() {
             switch (MenuOption) {
             case 0: InputUsername(); DifficultyMenu(); break;
             case 1:HelpMenu(); break;
-            case 2:FileOpen(0,0); break;
+            case 2:FileOpen(0,0,0); break;
             case 3:Exit = 0; break;
             }
             break;
@@ -355,6 +385,8 @@ int main() {
   файл +
 
   вин апи
+- Меню по центру
+- Цветной текст
 
   Осталось доработать:
   -Изменить вывод текста побуквенно
@@ -364,9 +396,8 @@ int main() {
   - Добавить таблицу рекордов +
         - распознование +
   - Добавить АККАУНТЫ для игроков
-        - пароли и прочая лабурдень
-  - Меню по центру
-  - Цветной текст
+        - пароль
+  
   - Алгоритм открытия
   - Немного интерактива
   - Пасхалки
