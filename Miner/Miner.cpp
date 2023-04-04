@@ -1,9 +1,9 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+﻿#include <iostream>
 #include <stdio.h>
 #include <conio.h>
 #include <windows.h>
+using namespace std;
 
-FILE* fp;
 char Temp_U[] = "user_temp.txt";
 char Users[] = "users.txt";
 const int KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54, K_ONE=49;
@@ -11,371 +11,535 @@ const int Enter = 13, F = 102, H = 104;
 const int Mine = 9;
 
  struct User{
-    char Name[15];
-    char Password[30];
+    string Name;
+    string Password;
     int Score;
     int Difficulty;
     int Sizemap;
     int Sum;
 };
+
  int lines() {
+     FILE* fp;
      size_t lines_count = 0;
+
      if ((fp = fopen(Users, "r+")) == NULL)
      {
          return 0;
      }
+
      while (!feof(fp))
      {
          if (fgetc(fp) == '\n')
              lines_count++;
      }
-     lines_count++;
+
      fclose(fp);
-     return lines_count-1;
+     return lines_count;
  }
- int FileOpen(int Comparison, char Name[15], char Password[30]) {
-    system("cls");
-    int i = 0, CountOfLines = lines(), TempScore = 0, TempSizeMap = 0, TempDifficuty=0, TempSum=0,CountOfLines_S= lines();
+
+ int FileOpen(int Comparison, string Name, string Password) {
+    int i = 0;
+    int countOfLines = lines(), countOfLines_S = lines();
+    int TempScore = 0, TempSizeMap = 0, TempDifficuty = 0, TempSum = 0;
+
     bool exit = true;
-    char TempName[15], TempPassword[30];
+    FILE* fp;
+    string TempName, TempPassword;
     struct User* ptr;
+    system("cls");
+
     if ((fp = fopen(Users, "r+")) == NULL)
     {
         if (Comparison == 0) {
-            printf("\n\tЗаписів нема! Ви - перший!\n");
+            cout<<"\n\tЗаписів нема! Ви - перший!"<<endl;
             system("pause");
         }
         return 0;
     }
-    ptr = (struct User*)malloc(CountOfLines * sizeof(struct User));
-    while (CountOfLines!=0) {
+
+    ptr = (struct User*)malloc(countOfLines * sizeof(struct User));
+
+    while (countOfLines !=0) {
+
         fscanf(fp, "%s%s%d%d%d", (ptr + i)->Name, (ptr + i)->Password, &((ptr + i)->Score), &((ptr + i)->Difficulty), &((ptr + i)->Sizemap));
-        switch(Comparison){
-        case 1: if (strcmp(Name, (ptr + i)->Name) == 0)return 1; break;
-        case 2:  if (strcmp(Name, (ptr + i)->Name) == 0) {
-            if (strcmp(Password, (ptr + i)->Password) == 0)return -1;
-        } break;
+
+        switch (Comparison) {
+
+            case 1: {
+            if (Name == (ptr + i)->Name) {
+                return 1;
+            }
+        };
+            case 2: {
+                if (Name == (ptr + i)->Name) {
+                    if (Password == (ptr + i)->Password) {
+                        return -1;
+                    }
+                }
+            }
         }
+
         (ptr + i)->Sum = (ptr + i)->Difficulty + (ptr + i)->Sizemap - (ptr + i)->Score;
-        printf("%s %s %d %d %d\n", (ptr + i)->Name, (ptr + i)->Password,(ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
+
         i++;
-        CountOfLines--;
+        countOfLines--;
     }
     fclose(fp);
-    if (Comparison >= 1) {
-        return 0;
-    }
 
-    for (i = 0; i < CountOfLines_S; i++) {
+    if (Comparison >= 1) return 0;
+
+    for (i = 0; i < countOfLines_S; i++) {
+
         do {
+
             exit = false;
-            for (i = 0; i < CountOfLines_S; i++) {
+            for (i = 0; i < countOfLines_S; i++) {
+
                 if ((ptr + 1 + i)->Sizemap > 0) {
+
                     if ((ptr + i)->Sum < (ptr + 1 + i)->Sum) {
                         TempSum = (ptr + i)->Sum;
                         TempScore = (ptr + i)->Score;
                         TempSizeMap = (ptr + i)->Sizemap;
                         TempDifficuty = (ptr + i)->Difficulty;
-                        strcpy(TempName, (ptr + i)->Name);
-                        strcpy(TempPassword, (ptr + i)->Password);
+                        TempName = (ptr + i)->Name;
+                        TempPassword = (ptr + i)->Password;
 
                         (ptr + i)->Sum = (ptr + 1 + i)->Sum;
                         (ptr + i)->Score = (ptr + 1 + i)->Score;
                         (ptr + i)->Sizemap = (ptr + 1 + i)->Sizemap;
-                        (ptr + i)->Difficulty= (ptr + 1 + i)->Difficulty;
-                        strcpy((ptr + i)->Name,(ptr + 1 + i)->Name);
-                        strcpy((ptr + i)->Password, (ptr + 1 + i)->Password);
+                        (ptr + i)->Difficulty = (ptr + 1 + i)->Difficulty;
+                        (ptr + i)->Name = (ptr + 1 + i)->Name;
+                        (ptr + i)->Password = (ptr + 1 + i)->Password;
 
                         (ptr + 1 + i)->Sum = TempSum;
                         (ptr + 1 + i)->Score=TempScore;
                         (ptr + 1 + i)->Sizemap=TempSizeMap;
                         (ptr + 1 + i)->Difficulty= TempDifficuty;
-                        strcpy((ptr + 1 + i)->Name, TempName);
-                        strcpy((ptr + 1 + i)->Password, TempPassword);
+                        (ptr + 1 + i)->Name = TempName;
+                        (ptr + 1 + i)->Password = TempPassword;
                         exit = true;
                     }
                 }
             }
         } while (exit);
+
     }
-    for (i = 0; i < CountOfLines_S; i++) {
-        printf("%d Місце - Нік: %s; Мін залишилось: %d; Відсоток заповненості поля: %d%%; Розмір поля: %d\n",i+1, (ptr + i)->Name, (ptr + i)->Score, (ptr + i)->Difficulty, (ptr + i)->Sizemap);
+    for (i = 0; i < countOfLines_S; i++) {
+        cout <<""<< i+1 <<" Місце; - Нік: "<< (ptr + i)->Name <<" Мін залишилось: "<< (ptr + i)->Score <<" Відсоток заповненості поля: "<< (ptr + i)->Difficulty <<"%%; Розмір поля: "<< (ptr + i)->Sizemap << endl;
     }
     system("pause");
     free(ptr);
+
     return 0;
+
 }
+
 void HelpMenu() {
     system("cls");
-    printf("\t\tEnter - Взаємодія з полем\n\t\tF - Поставити флаг\n\t\tУПРАВЛІННЯ:\n\t\t 8  \n\t\t4 6 \t \n\t\t 2\n");
+    cout << "\t\tEnter - Взаємодія з полем\n\t\tF - Поставити флаг\n\t\tУПРАВЛІННЯ:\n\t\t 8  \n\t\t4 6 \t \n\t\t 2" << endl;
     system("pause");
 }
-void GameStart(int MinesCount, int** FieldMines, int** FieldView, int Height, int Width,int Difficulty) {
-    const int FieldFlag = 11, FieldOpen = 10, FieldCursor = -1, FieldClosed = 0;
-    int End = 1, i = 0, j = 0, iO = 0, jO = 0;
+
+void GameStart(int minesCount, int** fieldMines, int** fieldView, int height, int width,int difficulty) {
+    const int fieldFlag = 11, fieldOpen = 10, fieldCursor = -1, fieldClosed = 0;
+    int end = 1, i = 0, j = 0, iO = 0, jO = 0;
+
     FILE* fp_temp;
-    char Name[15], Password[30];
-    FieldView[0][0] = FieldCursor;
-    int MinesStat = MinesCount, Flags = MinesCount, Cursor = 0;
+    FILE* fp;
+
+    string name;
+    string passWord;
+
+    fieldView[0][0] = fieldCursor;
+
+    int MinesStat = minesCount;
+    int Flags = minesCount;
+
     system("cls");
+
     do {
+
         system("cls");
-        printf("\tКількість флажків: %d\t Кількість мін: %d; H - Допомогти\n\n", Flags, MinesStat);
-        for (i = 0; i < Height; i++) {
-            printf("\t\t\t");
-            for (j = 0; j < Width; j++) {
-                switch (FieldView[i][j]) {
-                case FieldCursor: printf(" "); break;
-                case FieldOpen: printf("/"); break;
-                case FieldFlag:printf("P"); break;
-                case FieldClosed: printf("0"); break;
-                default: printf("%d", FieldView[i][j]); break;
+        cout << "\tКількість флажків: %d" << Flags << "\t Кількість мін: %d" << MinesStat << "; H - Допомогти\n" << endl;
+
+        for (i = 0; i < height; i++) {
+
+            cout << "\t\t\t";
+            for (j = 0; j < width; j++) {
+                switch (fieldView[i][j]) {
+                    case fieldCursor:   cout << " "; break;
+                    case fieldOpen:     cout << "/"; break;
+                    case fieldFlag:     cout << "P"; break;
+                    case fieldClosed:   cout << "0"; break;
+                    default:            cout << "%d", fieldView[i][j]; break;
                 }
             }
+
             printf("\n");
         }
-        Cursor = _getch();
-        switch (Cursor) {
-        case KP_8:
+
+        switch (_getch()) {
+
+        case KP_8:{
             if (iO > 0) {
                 iO--;
-                if (FieldView[iO + 1][jO] == FieldCursor)FieldView[iO + 1][jO] = FieldClosed;
-            }
-            else iO = FieldClosed;
-            if (FieldView[iO][jO] == FieldClosed)FieldView[iO][jO] = FieldCursor;  break;
-
-        case KP_2:
-            if (iO < Height - 1) {
-                iO++;
-                if (FieldView[iO - 1][jO] == FieldCursor)FieldView[iO - 1][jO] = FieldClosed;
-            }
-            else iO = Height - 1;
-            if (FieldView[iO][jO] == FieldClosed)FieldView[iO][jO] = FieldCursor;
-            break;
-
-        case KP_4:
-            if (jO > 0) {
-                jO--;
-                if (FieldView[iO][jO + 1] == FieldCursor)FieldView[iO][jO + 1] = FieldClosed;
-            }
-            else jO = FieldClosed;
-            if (FieldView[iO][jO] == FieldClosed)FieldView[iO][jO] = FieldCursor; break;
-
-        case KP_6:
-            if (jO < Width - 1) {
-                jO++;
-                if (FieldView[iO][jO - 1] == FieldCursor)FieldView[iO][jO - 1] = FieldClosed;
-            }
-            else jO = Width - 1;
-            if (FieldView[iO][jO] == FieldClosed) FieldView[iO][jO] = FieldCursor; break;
-
-        case Enter: if (FieldMines[iO][jO] != Mine) {
-            if (FieldView[iO][jO] != FieldFlag) { FieldMines[iO][jO] == FieldClosed ? FieldView[iO][jO] = FieldOpen : FieldView[iO][jO] = FieldMines[iO][jO]; }
-        }
-                  else {
-            system("cls");
-            for (i = 0; i < Height; i++) {
-                printf("\t\t\t");
-                for (j = 0; j < Width; j++) {
-                    if (FieldMines[i][j] == Mine) {
-                        printf("*");
-                    }
-                    else {
-                        printf("0");
-                    }
+                if (fieldView[iO + 1][jO] == fieldCursor) {
+                    fieldView[iO + 1][jO] = fieldClosed;
                 }
-                printf("\n");
-            }
-            printf("\t\tКАБУМ!!!!!!\n\t\tВаш рекорд: %d\n", MinesCount); End = 0; system("pause");
-        } break;
-        case F:if (FieldView[iO][jO] == FieldCursor) {
-            if (FieldMines[iO][jO] == Mine) {
-                MinesCount--; Flags--; FieldView[iO][jO] = FieldFlag;
             }
             else {
-                Flags--;
-                FieldView[iO][jO] = FieldFlag;
+                iO = fieldClosed;
             }
-        }
-              else if (FieldView[iO][jO] == FieldFlag) {
-            FieldView[iO][jO] = FieldCursor;
-            Flags++;
-            if (FieldMines[iO][jO] == Mine) {
-                MinesCount++;
+
+            if (fieldView[iO][jO] == fieldClosed) {
+                fieldView[iO][jO] = fieldCursor;
             }
-        } break;
-        case H:HelpMenu(); break;
+        break;
+        };
+
+        case KP_2: {
+            if (iO < height - 1) {
+                iO++;
+                if (fieldView[iO - 1][jO] == fieldCursor) {
+                    fieldView[iO - 1][jO] = fieldClosed;
+                }
+            }
+            else {
+                iO = height - 1;
+            }
+
+            if (fieldView[iO][jO] == fieldClosed) {
+                fieldView[iO][jO] = fieldCursor;
+            }
+        break;
+        };
+
+        case KP_4: {
+            if (jO > 0) {
+                jO--;
+                if (fieldView[iO][jO + 1] == fieldCursor) {
+                    fieldView[iO][jO + 1] = fieldClosed;
+                }
+            }
+            else {
+                jO = fieldClosed;
+            }
+
+            if (fieldView[iO][jO] == fieldClosed) {
+                fieldView[iO][jO] = fieldCursor;
+            }
+        break;
+        };
+
+        case KP_6: {
+            if (jO < width - 1) {
+                jO++;
+                if (fieldView[iO][jO - 1] == fieldCursor) {
+                    fieldView[iO][jO - 1] = fieldClosed;
+                }
+            }
+            else {
+                jO = width - 1;
+            }
+
+            if (fieldView[iO][jO] == fieldClosed) {
+                fieldView[iO][jO] = fieldCursor;
+            }
+        break;
+        };
+
+        case Enter: {
+            if (fieldMines[iO][jO] != Mine) {
+                if (fieldView[iO][jO] != fieldFlag) {
+                    fieldMines[iO][jO] == fieldClosed ? fieldView[iO][jO] = fieldOpen : fieldView[iO][jO] = fieldMines[iO][jO];
+                }
+            }
+            else {
+                system("cls");
+                for (i = 0; i < height; i++) {
+
+                    cout << "\t\t\t";
+
+                    for (j = 0; j < width; j++) {
+
+                        if (fieldMines[i][j] == Mine) {
+                            cout << "*";
+                        }
+                        else {
+                            cout << "0";
+                        }
+                    }
+
+                    cout << "\n";
+
+                }
+                cout << "\t\tКАБУМ!!!!!!\n\t\tВаш рекорд: %d" << minesCount << endl;
+                end = 0;
+                system("pause");
+
+            }
+        break;
+        };
+
+        case F: {
+            if (fieldView[iO][jO] == fieldCursor) {
+                if (fieldMines[iO][jO] == Mine) {
+                    minesCount--; Flags--; fieldView[iO][jO] = fieldFlag;
+                }
+                else {
+                    Flags--;
+                    fieldView[iO][jO] = fieldFlag;
+                }
+            }
+            else if (fieldView[iO][jO] == fieldFlag) {
+                fieldView[iO][jO] = fieldCursor;
+                Flags++;
+                if (fieldMines[iO][jO] == Mine) {
+                    minesCount++;
+                }
+            }
+         break;
+        };
+
+        case H: {HelpMenu(); break; };
+
         }
-        if (MinesCount == 0) {
-            End = 0;
+        if (minesCount == 0) {
+            end = 0;
             system("cls");
             printf("\t\tПЕРЕМОГА!!! ВИ ЗМОГЛИ!!!\n");
             system("pause");
         }
-    } while (End);
+
+    } while (end);
+
     fp_temp = fopen(Temp_U, "r");
-    fscanf(fp_temp, "%s%s", Name,Password);
+    fscanf(fp_temp, "%s%s", name, passWord);
     fclose(fp_temp);
+
     fp = fopen(Users, "a");
-    fprintf(fp,"%s %s %d %d %d \n",Name, Password, MinesCount, Difficulty,Height*Width);
+    fprintf(fp,"%s %s %d %d %d \n",name, passWord, minesCount, difficulty, height*width);
     fclose(fp);
 }
-void FieldFilling(int Difficulty, int Height, int Width) {
+
+void FieldFilling(int difficulty, int height, int width) {
     int i = 0, j = 0;
-    int MinesLeft = 0, Flags = 0;
+    int minesLeft = 0, flags = 0;
+
+    flags = minesLeft = height * width * (difficulty / 100.0);
+    int** playGround = (int**)malloc(height * sizeof(int*));
+    int** playGroundOn = (int**)malloc(height * sizeof(int*));
+
     system("cls");
-    Flags = MinesLeft = Height * Width * (Difficulty / 100.0);
-    int** Playground = (int**)malloc(Height * sizeof(int*));
-    int** PlaygroundOn= (int**)malloc(Height * sizeof(int*));
-    for (i = 0; i < Height; i++)
+
+    for (i = 0; i < height; i++)
     {
-        Playground[i] = (int*)malloc(Width * sizeof(int));
-        PlaygroundOn[i] = (int*)malloc(Width * sizeof(int));
-        for (j = 0; j < Width; j++)
+        playGround[i] = (int*)malloc(width * sizeof(int));
+        playGroundOn[i] = (int*)malloc(width * sizeof(int));
+
+        for (j = 0; j < width; j++)
         {
-            Playground[i][j] = 0;
-            PlaygroundOn[i][j] = 0;
+            playGround[i][j] = 0;
+            playGroundOn[i][j] = 0;
         }
     }
+
     do {
-        i = rand() % Height;
-        j = rand() % Width;
-        if ((Playground[i][j] >= 0 && Playground[i][j] <= Mine - 1) && Playground[i][j] != Mine) {
-            Playground[i][j] = Mine;
-            if (((i + 1) < Height) && Playground[i + 1][j] != Mine) { Playground[i + 1][j] += 1; }
-            if (((i - 1) >= 0) && Playground[i - 1][j] != Mine) { Playground[i - 1][j] += 1; }
-            if (((j - 1) >= 0) && Playground[i][j - 1] != Mine) { Playground[i][j - 1] += 1; }
-            if (((j + 1) < Width) && Playground[i][j + 1] != Mine) { Playground[i][j + 1] += 1; }
-            if (((i - 1) >= 0) && ((j - 1) >= 0) && Playground[i - 1][j - 1] != Mine) { Playground[i - 1][j - 1] += 1; }
-            if (((i + 1) < Height) && ((j + 1) < Width) && Playground[i + 1][j + 1] != Mine) { Playground[i + 1][j + 1] += 1; }
-            if (((i - 1) >= 0) && ((j + 1) < Width) && Playground[i - 1][j + 1] != Mine) { Playground[i - 1][j + 1] += 1; }
-            if (((i + 1) < Height) && ((j - 1) >= 0) && Playground[i + 1][j - 1] != Mine) { Playground[i + 1][j - 1] += 1; }
-            MinesLeft--;
+
+        i = rand() % height;
+        j = rand() % width;
+
+        if ((playGround[i][j] >= 0  && playGround[i][j] <= Mine - 1) && playGround[i][j] != Mine) {
+
+            playGround[i][j] = Mine;
+
+                if (((i + 1) < height)  && playGround[i + 1][j] != Mine) { playGround[i + 1][j] += 1; }
+                if (((j + 1) < width)   && playGround[i][j + 1] != Mine) { playGround[i][j + 1] += 1; }
+                if (((i - 1) >= 0)      && playGround[i - 1][j] != Mine) { playGround[i - 1][j] += 1; }
+                if (((j - 1) >= 0)      && playGround[i][j - 1] != Mine) { playGround[i][j - 1] += 1; }
+                if (((i - 1) >= 0)      && ((j - 1) >= 0)       && playGround[i - 1][j - 1] != Mine) { playGround[i - 1][j - 1] += 1; }
+                if (((i + 1) < height)  && ((j - 1) >= 0)       && playGround[i + 1][j - 1] != Mine) { playGround[i + 1][j - 1] += 1; }
+                if (((i + 1) < height)  && ((j + 1) < width)    && playGround[i + 1][j + 1] != Mine) { playGround[i + 1][j + 1] += 1; }
+                if (((i - 1) >= 0)      && ((j + 1) < width)    && playGround[i - 1][j + 1] != Mine) { playGround[i - 1][j + 1] += 1; }
+            
+            minesLeft--;
+
         }
-    } while (MinesLeft != 0);
-    GameStart(Flags, Playground, PlaygroundOn, Height, Width, Difficulty);
-    for (i = 0; i < Height; i++) {
-        free(PlaygroundOn[i]);
-        free(Playground[i]);
+
+    } while (minesLeft != 0);
+
+    GameStart(flags, playGround, playGroundOn, height, width, difficulty);
+
+    for (i = 0; i < height; i++) {
+
+        free(playGroundOn[i]);
+        free(playGround[i]);
+
     }
-    free(PlaygroundOn);
-    free(Playground);
+
+    free(playGroundOn);
+    free(playGround);
 }
-void FieldSize(int Difficulty) {
-    int Height = 0, Width = 0;
+
+void FieldSize(int difficulty) {
+    int height = 0, width = 0;
+
     do {
         system("cls");
-        printf("\t\tРозмірність поля:\n\n");
-        printf("\tВведіть висоту поля: "); scanf_s("%d", &Height);
-        printf("\tВведіть ширину поля: "); scanf_s("%d", &Width);
-    } while (Height < 2 || Width < 2);
-    FieldFilling(Difficulty, Height, Width);
+        cout << "\t\tРозмірність поля:\n" << endl;
+
+        cout << "\tВведіть висоту поля: " << endl; 
+        cin >> height;
+        cout << "\tВведіть ширину поля: " << endl; 
+        cin >> width;
+
+    } while (height < 2 || width < 2);
+
+    FieldFilling(difficulty, height, width);
 }
+
 int DifficultyMenu() {
-    int Diffuculty = 0, MenuControl = 0, MenuOption = 0;
-    int Exit = 1;
+    int diffuculty = 0;
+    int menuOption = 0;
+    int exit = 1;
+
     system("cls");
     do {
-        printf("\t\tВиберіть рівень складності:\n\n");
+
+        cout << "\t\tВиберіть рівень складності:\n" << endl;
         switch (1) {
-        case 1:MenuOption == 0 ? printf("\t> Легко\n") : printf("\tЛегко\n");
-        case 2:MenuOption == 1 ? printf("\t> Середнє\n") : printf("\tСереднє\n");
-        case 3:MenuOption == 2 ? printf("\t> Важко\n") : printf("\tВажко\n");
-        case 4:MenuOption == 3 ? printf("\t> Хардкор\n") : printf("\tХардкор\n");
-        case 5:MenuOption == 4 ? printf("\t> Налаштувати\n") : printf("\tНалаштувати\n");
-        case 6:MenuOption == 5 ? printf("\t> Назад\n") : printf("\tНазад\n");
+            case 1:menuOption == 0 ? cout << "\t> Легко" << endl :       cout << "\tЛегко" << endl;
+            case 2:menuOption == 1 ? cout << "\t> Середнє" << endl :     cout << "\tСереднє" << endl;
+            case 3:menuOption == 2 ? cout << "\t> Важко" << endl :       cout << "\tВажко" << endl;
+            case 4:menuOption == 3 ? cout << "\t> Хардкор" << endl :     cout << "\tХардкор" << endl;
+            case 5:menuOption == 4 ? cout << "\t> Налаштувати" << endl : cout << "\tНалаштувати" << endl;
+            case 6:menuOption == 5 ? cout << "\t> Назад" << endl :       cout << "\tНазад" << endl;
         }
-        MenuControl = _getch();
-        switch (MenuControl) {
-        case KP_8: MenuOption > 0 ? MenuOption-- : MenuOption = 5; break;
-        case KP_2:MenuOption < 5 ? MenuOption++ : MenuOption = 0; break;
-        case Enter:
-            switch (MenuOption) {
-            case 0: Diffuculty = 15; break;
-            case 1: Diffuculty = 25; break;
-            case 2: Diffuculty = 50; break;
-            case 3: Diffuculty = 75; break;
-            case 4:
-                do {
-                    system("cls");
-                    printf("\t\tВведіть відсоток заповненості поля мінами: ");
-                    scanf_s("%d", &Diffuculty);
-                } while (Diffuculty > 99 || Diffuculty <= 0);
-                break;
-            case 5: return 0; break;
-            }; Exit = 0; break;
-        }
-        system("cls");
-    } while (Exit);
-    FieldSize(Diffuculty);
+
+        switch (_getch()) {
+            case KP_8: menuOption > 0 ? menuOption-- : menuOption = 5; break;
+            case KP_2: menuOption < 5 ? menuOption++ : menuOption = 0; break;
+            case Enter: {
+                switch (menuOption) {
+                    case 0: diffuculty = 15; break;
+                    case 1: diffuculty = 25; break;
+                    case 2: diffuculty = 50; break;
+                    case 3: diffuculty = 75; break;
+                    case 4: {
+                        do {
+                            system("cls");
+                            cout << "\t\tВведіть відсоток заповненості поля мінами: ";
+                            cin >> diffuculty;
+                        } while (diffuculty > 99 || diffuculty <= 0);
+                        break;
+                    };
+                    case 5: return 0;
+                };
+            exit = 0;
+            break;
+            };
+        };
+
+    system("cls");
+
+    } while (exit);
+
+    FieldSize(diffuculty);
 }
-char* InputPassword() {
-    char Password[31];
+
+string InputPassword() {
+    string passWord;
     do {
         system("cls");
-        printf("Введіть пароль(до 30 символів)!: ");
-        scanf("%s", Password);
-    } while (strlen(Password) > 30);
-    return Password;
+        cout << "Введіть пароль(до 30 символів)!: ";
+        cin >> passWord;
+
+    } while (passWord.size() > 30);
+
+    return passWord;
 }
+
 void InputUsername() {
     system("cls");
-    int Comparison;
-    char Password[31];
-    char Username[16];
+    int comparison=0;
+    string passWord;
+    string userName;
+    FILE* fp;
     do {
+
         do {
             NicknameEnter:
             system("cls");
-            printf("\n\t\tВведіть нік(15 символів): ");
-            scanf("%s", Username);
-        } while (strlen(Username)>15);
-        Comparison = FileOpen(1, Username,0);
-        if (Comparison == 1) {
+            cout<<"\n\t\tВведіть нік(15 символів): ";
+            cin >> userName;
+
+        }while (userName.size() >15);
+
+        comparison = FileOpen(1, userName,0);
+
+        if (comparison == 1) {
             system("cls");
-            printf("Нік зайнято! Введіть:\n1 - новий нік\n2- пароль\n");
+            cout << "Нік зайнято! Введіть:\n1 - новий нік\n2- пароль"<<endl;
             switch (_getch()) {
-            case K_ONE: goto NicknameEnter; break;
-            case KP_2:strcpy(Password,InputPassword()); Comparison = FileOpen(2,Username, Password); break;
+            case K_ONE: goto NicknameEnter;
+            case KP_2: {
+                passWord = InputPassword();
+                comparison = FileOpen(2, userName, passWord);
+                break;
+              }
             }
         }
-    } while (Comparison == 1);
-    if (Comparison != -1) {
-        strcpy(Password, InputPassword());
+
+    } while (comparison == 1);
+
+    if (comparison != -1) {
+        passWord, InputPassword();
     }
+
     fp = fopen(Temp_U, "w");
-    fprintf(fp, "%s %s\n", Username, Password);
+    fprintf(fp, "%s %s\n", userName, passWord);
     fclose(fp);
+    DifficultyMenu();
 }
+
 void MenuHello() {
-    int MenuControl = 0, MenuOption = 0;
-    int Exit = 1;
+    int menuOption = 0;
+    int exit = 1;
+
     do {
-        printf("\t\tСАПЕР V 2.2.8. BETA \n\n");
+        cout << "\t\tСАПЕР V 2.2.8. BETA \n\n" << endl;
         switch (1) {
-        case 1:  MenuOption == 0 ? printf("\t> Нова гра\n") : printf("\tНова гра\n");
-        case 2:  MenuOption == 1 ? printf("\t> Допомога\n") : printf("\tДопомога\n");
-        case 3:  MenuOption == 2 ? printf("\t> Таблиця лідерів\n") : printf("\tТаблиця лідерів\n");
-        case 4:  MenuOption == 3 ? printf("\t> Вихід\n") : printf("\tВихід\n");
+            case 1:  menuOption == 0 ? cout <<"\t> Нова гра" << endl :        cout <<"\tНова гра" << endl;
+            case 2:  menuOption == 1 ? cout <<"\t> Допомога" << endl :        cout <<"\tДопомога" << endl;
+            case 3:  menuOption == 2 ? cout <<"\t> Таблиця лідерів" << endl : cout <<"\tТаблиця лідерів" << endl;
+            case 4:  menuOption == 3 ? cout <<"\t> Вихід" << endl :           cout <<"\tВихід" << endl;
         }
-        MenuControl = _getch();
-        printf("%d", MenuControl);
-        switch (MenuControl) {
-        case KP_8: MenuOption > 0 ? MenuOption-- : MenuOption = 3; break;
-        case KP_2:MenuOption < 3 ? MenuOption++ : MenuOption = 0; break;
-        case Enter:
-            switch (MenuOption) {
-            case 0: InputUsername(); DifficultyMenu(); break;
-            case 1:HelpMenu(); break;
-            case 2:FileOpen(0,0,0); break;
-            case 3:Exit = 0; break;
-            }
-            break;
+
+        cout << _getch();
+        /*becouse of bug*/
+
+        switch (_getch()) {
+            case KP_8: menuOption > 0 ? menuOption-- : menuOption = 3; break;
+            case KP_2: menuOption < 3 ? menuOption++ : menuOption = 0; break;
+            case Enter: {
+                switch (menuOption) {
+                    case 0: InputUsername(); break;
+                    case 1: HelpMenu(); break;
+                    case 2: FileOpen(0, 0, 0); break;
+                    case 3: exit = 0; break;
+                }
+            }break;
         }
+
         system("cls");
-    } while (Exit);
-    printf("\tДо зустрічі!\n");
+
+    } while (exit);
+
+    cout <<"\tДо зустрічі!" << endl;
 }
+
 int main() {
     SetConsoleOutputCP(1251);
     MenuHello();
