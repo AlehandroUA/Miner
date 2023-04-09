@@ -1,5 +1,7 @@
 ﻿#include <iostream>
 #include <stdio.h>
+#include <vector>
+#include <queue>
 #include <conio.h>
 #include <windows.h>
 using namespace std;
@@ -9,6 +11,8 @@ char Users[] = "users.txt";
 const int KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54, K_ONE=49;
 const int Enter = 13, F = 102, H = 104;
 const int Mine = 9;
+int row[] = { -1, -1, -1, 0, 0, 1, 1, 1 };
+int col[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
 
  struct User{
     string Name;
@@ -37,6 +41,16 @@ const int Mine = 9;
      fclose(fp);
      return lines_count;
  }
+ 
+ int InRange(vector<vector<int>>& field, int i, int j, int target) {
+     if (target == 0) {
+         return(i >= 0 && i < field.size()) && (j >= 0 && j < field[0].size() && field[i][j] != Mine);
+     }
+     else {
+         return (i >= 0 && i < field.size()) && (j >= 0 && j < field[0].size())
+             && field[i][j] == target;
+     }
+}
 
  int FileOpen(int Comparison, string Name, string Password) {
     int i = 0;
@@ -142,7 +156,54 @@ void HelpMenu() {
     system("pause");
 }
 
-void GameStart(int minesCount, int** fieldMines, int** fieldView, int height, int width,int difficulty) {
+void FloodFill(vector<vector<int>>& mat, int x, int y, char replacement)
+{
+    // базовый вариант
+    if (mat.size() == 0) {
+        return;
+    }
+
+    // создаем queue и ставим в queue начальный пиксель
+    queue<pair<int, int>> q;
+    q.push({ x, y });
+
+    // получаем целевой цвет
+    char target = mat[x][y];
+
+    // целевой цвет такой же, как и замена
+    if (target == replacement) {
+        return;
+    }
+
+    // прерываем, когда queue становится пустой
+    while (!q.empty())
+    {
+        // удалить передний узел из очереди и обработать его
+        pair<int, int> node = q.front();
+        q.pop();
+
+        // (x, y) представляет текущий пиксель
+        int x = node.first, y = node.second;
+
+        // заменить текущий цвет пикселя цветом замены
+        mat[x][y] = replacement;
+
+        // обрабатываем все восемь соседних пикселей текущего пикселя и
+        // поставить в queue каждый допустимый пиксель
+        for (int k = 0; k < 8; k++)
+        {
+            // если соседний пиксель в позиции (x + row[k], y + col[k])
+            // действителен и имеет тот же цвет, что и текущий пиксель
+            if (InRange(mat, x + row[k], y + col[k], target))
+            {
+                // поставить в queue соседний пиксель
+                q.push({ x + row[k], y + col[k] });
+            }
+        }
+    }
+}
+
+void GameStart(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>> fieldView, int height, int width,int difficulty) {
     const int fieldFlag = 11, fieldOpen = 10, fieldCursor = -1, fieldClosed = 0;
     int end = 1, i = 0, j = 0, iO = 0, jO = 0;
 
@@ -329,58 +390,57 @@ void FieldFilling(int difficulty, int height, int width) {
     int minesLeft = 0, flags = 0;
 
     flags = minesLeft = height * width * (difficulty / 100.0);
-    int** playGround = (int**)malloc(height * sizeof(int*));
-    int** playGroundOn = (int**)malloc(height * sizeof(int*));
 
+    /*vector<vector<int>> test(5);
+for (int i = 0; i < 5; i++) {
+    test[i].resize(10, i);
+}
+test[2][2] = 1;
+for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 10; j++) {
+        cout << test[i][j] << " ";
+    }
+    cout << endl;
+    1 1 1 1 1 1 1 1 1 1
+    1
+    1
+    1
+    1
+}*/
+
+    vector <vector <int>> playGround(height);
+    vector <vector <int>> playGroundOn(height);
     system("cls");
 
     for (i = 0; i < height; i++)
     {
-        playGround[i] = (int*)malloc(width * sizeof(int));
-        playGroundOn[i] = (int*)malloc(width * sizeof(int));
-
-        for (j = 0; j < width; j++)
-        {
-            playGround[i][j] = 0;
-            playGroundOn[i][j] = 0;
-        }
+        playGround[i].resize(width);
+        playGroundOn[i].resize(width);
     }
 
     do {
-
         i = rand() % height;
         j = rand() % width;
 
         if ((playGround[i][j] >= 0  && playGround[i][j] <= Mine - 1) && playGround[i][j] != Mine) {
-
             playGround[i][j] = Mine;
 
-                if (((i + 1) < height)  && playGround[i + 1][j] != Mine) { playGround[i + 1][j] += 1; }
-                if (((j + 1) < width)   && playGround[i][j + 1] != Mine) { playGround[i][j + 1] += 1; }
-                if (((i - 1) >= 0)      && playGround[i - 1][j] != Mine) { playGround[i - 1][j] += 1; }
-                if (((j - 1) >= 0)      && playGround[i][j - 1] != Mine) { playGround[i][j - 1] += 1; }
-                if (((i - 1) >= 0)      && ((j - 1) >= 0)       && playGround[i - 1][j - 1] != Mine) { playGround[i - 1][j - 1] += 1; }
-                if (((i + 1) < height)  && ((j - 1) >= 0)       && playGround[i + 1][j - 1] != Mine) { playGround[i + 1][j - 1] += 1; }
-                if (((i + 1) < height)  && ((j + 1) < width)    && playGround[i + 1][j + 1] != Mine) { playGround[i + 1][j + 1] += 1; }
-                if (((i - 1) >= 0)      && ((j + 1) < width)    && playGround[i - 1][j + 1] != Mine) { playGround[i - 1][j + 1] += 1; }
-            
+            for (int k = 0; k < 8; k++) {
+                if (InRange(playGround, i + row[k], j + col[k],0)) {
+                    playGround[i + row[k]][j + col[k]] += 1;
+                }
+            }
             minesLeft--;
-
         }
-
     } while (minesLeft != 0);
 
-    GameStart(flags, playGround, playGroundOn, height, width, difficulty);
-
-    for (i = 0; i < height; i++) {
-
-        free(playGroundOn[i]);
-        free(playGround[i]);
-
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            cout << playGround[i][j] << " ";
+        }
+        cout << endl;
     }
-
-    free(playGroundOn);
-    free(playGround);
+    GameStart(flags, playGround, playGroundOn, height, width, difficulty);
 }
 
 void FieldSize(int difficulty) {
@@ -390,11 +450,11 @@ void FieldSize(int difficulty) {
         system("cls");
         cout << "\t\tРозмірність поля:\n" << endl;
 
-        cout << "\tВведіть висоту поля: " << endl; 
+        cout << "\tВведіть висоту поля: "; 
         cin >> height;
-        cout << "\tВведіть ширину поля: " << endl; 
-        cin >> width;
 
+        cout << "\tВведіть ширину поля: "; 
+        cin >> width;
     } while (height < 2 || width < 2);
 
     FieldFilling(difficulty, height, width);
@@ -509,7 +569,7 @@ void MenuHello() {
     int exit = 1;
 
     do {
-        cout << "\t\tСАПЕР V 2.2.8. BETA \n\n" << endl;
+        cout << "\t\tСАПЕР V 2.2.9. BETA \n\n" << endl;
         switch (1) {
             case 1:  menuOption == 0 ? cout <<"\t> Нова гра" << endl :        cout <<"\tНова гра" << endl;
             case 2:  menuOption == 1 ? cout <<"\t> Допомога" << endl :        cout <<"\tДопомога" << endl;
@@ -542,7 +602,7 @@ void MenuHello() {
 
 int main() {
     SetConsoleOutputCP(1251);
-    MenuHello();
+    FieldSize(15);
 }
 /*алгоритм открытия ячеек
 
@@ -559,8 +619,8 @@ int main() {
         - Проверка файла +
   - Добавить таблицу рекордов +
         - распознование +
-  - Добавить АККАУНТЫ для игроков
-        - пароль
+  - Добавить АККАУНТЫ для игроков +
+        - пароль +
   
   - Алгоритм открытия
   - Немного интерактива
