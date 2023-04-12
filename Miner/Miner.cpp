@@ -1,4 +1,6 @@
 ﻿#include <iostream>
+#include <fstream>
+#include <string>
 #include <stdio.h>
 #include <vector>
 #include <queue>
@@ -8,13 +10,13 @@ using namespace std;
 
 char Temp_U[] = "user_temp.txt";
 char Users[] = "users.txt";
-const int KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54, K_ONE=49;
+const int KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54, K_1=49;
 const int Enter = 13, F = 102, H = 104;
 const int Mine = 9;
-int row[] = { -1, -1, -1, 0, 0, 1, 1, 1 };
-int col[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
+int row[] = { -1,  0, 0, 1, 1, -1, -1,  1};
+int col[] = {  0, -1, 1, 0, 1, -1,  1, -1};
 
- struct User{
+struct User{
     string Name;
     string Password;
     int Score;
@@ -23,26 +25,24 @@ int col[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
     int Sum;
 };
 
- int lines() {
-     FILE* fp;
-     size_t lines_count = 0;
-
-     if ((fp = fopen(Users, "r+")) == NULL)
+int lines() {
+     string check;
+     ifstream file(Users);
+     int lines_count = 0;
+     if (file.peek() == EOF)
      {
          return 0;
      }
-
-     while (!feof(fp))
+     while (getline(file, check))
      {
-         if (fgetc(fp) == '\n')
-             lines_count++;
+         lines_count++;
      }
 
-     fclose(fp);
+     file.close();
      return lines_count;
  }
  
- int InRange(vector<vector<int>>& field, int i, int j, int target) {
+int InRange(vector<vector<int>>& field, int i, int j, int target) {
      if (target == 0) {
          return(i >= 0 && i < field.size()) && (j >= 0 && j < field[0].size() && field[i][j] != Mine);
      }
@@ -52,18 +52,17 @@ int col[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
      }
 }
 
- int FileOpen(int Comparison, string Name, string Password) {
+int FileOpen(int Comparison, string Name, string Password) {
     int i = 0;
-    int countOfLines = lines(), countOfLines_S = lines();
-    int TempScore = 0, TempSizeMap = 0, TempDifficuty = 0, TempSum = 0;
-
+    int countOfLines = lines();
+    const int countOfLines_C = lines();
+    int tempScore = 0, tempSizeMap = 0, tempDifficuty = 0, tempSum = 0;
+    User* ptr = new User[countOfLines_C];
     bool exit = true;
-    FILE* fp;
-    string TempName, TempPassword;
-    struct User* ptr;
+    ifstream file(Users);
+    string tempName, tempPassword;
     system("cls");
-
-    if ((fp = fopen(Users, "r+")) == NULL)
+    if (file.peek() == EOF)
     {
         if (Comparison == 0) {
             cout<<"\n\tЗаписів нема! Ви - перший!"<<endl;
@@ -71,54 +70,52 @@ int col[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
         }
         return 0;
     }
-
-    ptr = (struct User*)malloc(countOfLines * sizeof(struct User));
-
-    while (countOfLines !=0) {
-
-        fscanf(fp, "%s%s%d%d%d", (ptr + i)->Name, (ptr + i)->Password, &((ptr + i)->Score), &((ptr + i)->Difficulty), &((ptr + i)->Sizemap));
-
+    for(int j =0;j<countOfLines_C;j++){
+        file >> ptr[i].Name;
+        file >> ptr[i].Password;
+        file >> ptr[i].Difficulty;
+        file >> ptr[i].Score;
+        file >> ptr[i].Sizemap;
+        file >> ptr[i].Sum;
         switch (Comparison) {
-
             case 1: {
-            if (Name == (ptr + i)->Name) {
+            if (Name == ptr[i].Name) {
                 return 1;
             }
         };
             case 2: {
-                if (Name == (ptr + i)->Name) {
-                    if (Password == (ptr + i)->Password) {
+                if (Name == ptr[i].Name) {
+                    if (Password == ptr[i].Password) {
                         return -1;
                     }
                 }
             }
         }
-
-        (ptr + i)->Sum = (ptr + i)->Difficulty + (ptr + i)->Sizemap - (ptr + i)->Score;
-
+        cout << "" << i + 1 << " Місце; - Нік: " << (ptr + i)->Name << " Мін залишилось: " << (ptr + i)->Score << " Відсоток заповненості поля: " << (ptr + i)->Difficulty << "%%; Розмір поля: " << (ptr + i)->Sizemap << endl;
         i++;
-        countOfLines--;
     }
-    fclose(fp);
+    file.close();
 
-    if (Comparison >= 1) return 0;
+    if (Comparison >= 1) {
+        return 0;
+    }
 
-    for (i = 0; i < countOfLines_S; i++) {
+    for (i = 0; i < countOfLines_C; i++) {
 
         do {
 
             exit = false;
-            for (i = 0; i < countOfLines_S; i++) {
+            for (i = 0; i < countOfLines_C; i++) {
 
                 if ((ptr + 1 + i)->Sizemap > 0) {
 
                     if ((ptr + i)->Sum < (ptr + 1 + i)->Sum) {
-                        TempSum = (ptr + i)->Sum;
-                        TempScore = (ptr + i)->Score;
-                        TempSizeMap = (ptr + i)->Sizemap;
-                        TempDifficuty = (ptr + i)->Difficulty;
-                        TempName = (ptr + i)->Name;
-                        TempPassword = (ptr + i)->Password;
+                        tempSum = (ptr + i)->Sum;
+                        tempScore = (ptr + i)->Score;
+                        tempSizeMap = (ptr + i)->Sizemap;
+                        tempDifficuty = (ptr + i)->Difficulty;
+                        tempName = (ptr + i)->Name;
+                        tempPassword = (ptr + i)->Password;
 
                         (ptr + i)->Sum = (ptr + 1 + i)->Sum;
                         (ptr + i)->Score = (ptr + 1 + i)->Score;
@@ -127,12 +124,12 @@ int col[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
                         (ptr + i)->Name = (ptr + 1 + i)->Name;
                         (ptr + i)->Password = (ptr + 1 + i)->Password;
 
-                        (ptr + 1 + i)->Sum = TempSum;
-                        (ptr + 1 + i)->Score=TempScore;
-                        (ptr + 1 + i)->Sizemap=TempSizeMap;
-                        (ptr + 1 + i)->Difficulty= TempDifficuty;
-                        (ptr + 1 + i)->Name = TempName;
-                        (ptr + 1 + i)->Password = TempPassword;
+                        (ptr + 1 + i)->Sum = tempSum;
+                        (ptr + 1 + i)->Score = tempScore;
+                        (ptr + 1 + i)->Sizemap = tempSizeMap;
+                        (ptr + 1 + i)->Difficulty = tempDifficuty;
+                        (ptr + 1 + i)->Name = tempName;
+                        (ptr + 1 + i)->Password = tempPassword;
                         exit = true;
                     }
                 }
@@ -140,11 +137,11 @@ int col[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
         } while (exit);
 
     }
-    for (i = 0; i < countOfLines_S; i++) {
+    for (i = 0; i < countOfLines_C; i++) {
         cout <<""<< i+1 <<" Місце; - Нік: "<< (ptr + i)->Name <<" Мін залишилось: "<< (ptr + i)->Score <<" Відсоток заповненості поля: "<< (ptr + i)->Difficulty <<"%%; Розмір поля: "<< (ptr + i)->Sizemap << endl;
     }
     system("pause");
-    free(ptr);
+    delete[]ptr;
 
     return 0;
 
@@ -156,25 +153,22 @@ void HelpMenu() {
     system("pause");
 }
 
-void FloodFill(vector<vector<int>>& mat, int x, int y, char replacement)
+void FloodFill(vector<vector<int>>& f_Main, int x, int y, int replacement)
 {
     // базовый вариант
-    if (mat.size() == 0) {
+    if (f_Main.size() == 0) {
         return;
     }
-
     // создаем queue и ставим в queue начальный пиксель
     queue<pair<int, int>> q;
     q.push({ x, y });
-
     // получаем целевой цвет
-    char target = mat[x][y];
+    int target_Main = f_Main[x][y];
 
     // целевой цвет такой же, как и замена
-    if (target == replacement) {
+    if (target_Main != -2) {
         return;
     }
-
     // прерываем, когда queue становится пустой
     while (!q.empty())
     {
@@ -186,15 +180,15 @@ void FloodFill(vector<vector<int>>& mat, int x, int y, char replacement)
         int x = node.first, y = node.second;
 
         // заменить текущий цвет пикселя цветом замены
-        mat[x][y] = replacement;
+        f_Main[x][y] = replacement;
 
         // обрабатываем все восемь соседних пикселей текущего пикселя и
         // поставить в queue каждый допустимый пиксель
-        for (int k = 0; k < 8; k++)
+        for (int k = 0; k < 4; k++)
         {
             // если соседний пиксель в позиции (x + row[k], y + col[k])
             // действителен и имеет тот же цвет, что и текущий пиксель
-            if (InRange(mat, x + row[k], y + col[k], target))
+            if (InRange(f_Main, x + row[k], y + col[k], target_Main))
             {
                 // поставить в queue соседний пиксель
                 q.push({ x + row[k], y + col[k] });
@@ -204,15 +198,13 @@ void FloodFill(vector<vector<int>>& mat, int x, int y, char replacement)
 }
 
 void GameStart(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>> fieldView, int height, int width,int difficulty) {
-    const int fieldFlag = 11, fieldOpen = 10, fieldCursor = -1, fieldClosed = 0;
+    const int fieldFlag = 11, fieldOpen = 0, fieldCursor = -1, fieldClosed = -2;
     int end = 1, i = 0, j = 0, iO = 0, jO = 0;
-
-    FILE* fp_temp;
-    FILE* fp;
 
     string name;
     string passWord;
-
+    ifstream fileOut(Temp_U);
+    ofstream fileIn(Users,ios::app);
     fieldView[0][0] = fieldCursor;
 
     int MinesStat = minesCount;
@@ -223,7 +215,7 @@ void GameStart(int minesCount, vector<vector<int>> fieldMines, vector<vector<int
     do {
 
         system("cls");
-        cout << "\tКількість флажків: %d" << Flags << "\t Кількість мін: %d" << MinesStat << "; H - Допомогти\n" << endl;
+        cout << "\tКількість флажків: " << Flags << "\t Кількість мін: " << MinesStat << "; H - Допомогти\n" << endl;
 
         for (i = 0; i < height; i++) {
 
@@ -234,7 +226,7 @@ void GameStart(int minesCount, vector<vector<int>> fieldMines, vector<vector<int
                     case fieldOpen:     cout << "/"; break;
                     case fieldFlag:     cout << "P"; break;
                     case fieldClosed:   cout << "0"; break;
-                    default:            cout << "%d", fieldView[i][j]; break;
+                    default:            cout << fieldView[i][j]; break;
                 }
             }
 
@@ -314,7 +306,24 @@ void GameStart(int minesCount, vector<vector<int>> fieldMines, vector<vector<int
         case Enter: {
             if (fieldMines[iO][jO] != Mine) {
                 if (fieldView[iO][jO] != fieldFlag) {
-                    fieldMines[iO][jO] == fieldClosed ? fieldView[iO][jO] = fieldOpen : fieldView[iO][jO] = fieldMines[iO][jO];
+                    if (fieldMines[iO][jO] == fieldClosed) {
+                        FloodFill(fieldMines, iO, jO, fieldOpen);
+                        system("cls");
+                        for (i = 0; i < height; i++) {
+                            for (j = 0; j < width; j++) {
+                                if (fieldMines[i][j] == 0) {
+                                    fieldView[i][j] = 0;
+                                    for (int k = 0; k < 4; k++) {
+                                        if (InRange(fieldView, i + row[k], j + col[k], 0)) {
+                                            fieldView[i + row[k]][j + col[k]] = fieldMines[i + row[k]][j + col[k]];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }else {
+                        fieldView[iO][jO] = fieldMines[iO][jO];
+                    }
                 }
             }
             else {
@@ -336,7 +345,7 @@ void GameStart(int minesCount, vector<vector<int>> fieldMines, vector<vector<int
                     cout << "\n";
 
                 }
-                cout << "\t\tКАБУМ!!!!!!\n\t\tВаш рекорд: %d" << minesCount << endl;
+                cout << "\t\tКАБУМ!!!!!!\n\t\tВаш рекорд: " << minesCount << endl;
                 end = 0;
                 system("pause");
 
@@ -375,39 +384,33 @@ void GameStart(int minesCount, vector<vector<int>> fieldMines, vector<vector<int
         }
 
     } while (end);
+    
 
-    fp_temp = fopen(Temp_U, "r");
-    fscanf(fp_temp, "%s%s", name, passWord);
-    fclose(fp_temp);
+    if (fileOut.is_open()) {
+        fileOut >> name;
+        fileOut >> passWord;
+    }
+    fileOut.close();
 
-    fp = fopen(Users, "a");
-    fprintf(fp,"%s %s %d %d %d \n",name, passWord, minesCount, difficulty, height*width);
-    fclose(fp);
+    if (fileIn.is_open()) {
+        fileIn << name;
+        fileIn << " ";
+        fileIn << passWord;
+        fileIn << " ";
+        fileIn << minesCount;
+        fileIn << " ";
+        fileIn << difficulty;
+        fileIn << " ";
+        fileIn << height * width;
+        fileIn << " ";
+    }
+    fileIn.close();
 }
 
 void FieldFilling(int difficulty, int height, int width) {
     int i = 0, j = 0;
     int minesLeft = 0, flags = 0;
-
     flags = minesLeft = height * width * (difficulty / 100.0);
-
-    /*vector<vector<int>> test(5);
-for (int i = 0; i < 5; i++) {
-    test[i].resize(10, i);
-}
-test[2][2] = 1;
-for (int i = 0; i < 5; i++) {
-    for (int j = 0; j < 10; j++) {
-        cout << test[i][j] << " ";
-    }
-    cout << endl;
-    1 1 1 1 1 1 1 1 1 1
-    1
-    1
-    1
-    1
-}*/
-
     vector <vector <int>> playGround(height);
     vector <vector <int>> playGroundOn(height);
     system("cls");
@@ -415,7 +418,7 @@ for (int i = 0; i < 5; i++) {
     for (i = 0; i < height; i++)
     {
         playGround[i].resize(width);
-        playGroundOn[i].resize(width);
+        playGroundOn[i].resize(width,-2);
     }
 
     do {
@@ -433,12 +436,12 @@ for (int i = 0; i < 5; i++) {
             minesLeft--;
         }
     } while (minesLeft != 0);
-
-    for (int i = 0; i < height; i++) {
+    for (int i = 0; i < height;i++) {
         for (int j = 0; j < width; j++) {
-            cout << playGround[i][j] << " ";
+            if (playGround[i][j] == 0) {
+                playGround[i][j] = -2;
+            }
         }
-        cout << endl;
     }
     GameStart(flags, playGround, playGroundOn, height, width, difficulty);
 }
@@ -526,24 +529,23 @@ void InputUsername() {
     int comparison=0;
     string passWord;
     string userName;
-    FILE* fp;
+    ofstream fileIn(Temp_U);
     do {
 
         do {
-            NicknameEnter:
+            nicknameenter:
             system("cls");
-            cout<<"\n\t\tВведіть нік(15 символів): ";
+            cout<<"\n\t\tвведіть нік(15 символів): ";
             cin >> userName;
 
-        }while (userName.size() >15);
-
-        comparison = FileOpen(1, userName,0);
+        }while (userName.size() > 15);
+        comparison = FileOpen(1, userName,"");
 
         if (comparison == 1) {
             system("cls");
-            cout << "Нік зайнято! Введіть:\n1 - новий нік\n2- пароль"<<endl;
+            cout << "нік зайнято! введіть:\n1 - новий нік\n2- пароль"<<endl;
             switch (_getch()) {
-            case K_ONE: goto NicknameEnter;
+            case K_1: goto nicknameenter;
             case KP_2: {
                 passWord = InputPassword();
                 comparison = FileOpen(2, userName, passWord);
@@ -555,13 +557,14 @@ void InputUsername() {
     } while (comparison == 1);
 
     if (comparison != -1) {
-        passWord, InputPassword();
+        passWord = InputPassword();
     }
-
-    fp = fopen(Temp_U, "w");
-    fprintf(fp, "%s %s\n", userName, passWord);
-    fclose(fp);
-    DifficultyMenu();
+    if (fileIn.is_open()) {
+        fileIn << userName;
+        fileIn << " ";
+        fileIn << passWord;
+    }
+    fileIn.close();
 }
 
 void MenuHello() {
@@ -577,7 +580,7 @@ void MenuHello() {
             case 4:  menuOption == 3 ? cout <<"\t> Вихід" << endl :           cout <<"\tВихід" << endl;
         }
 
-        cout << _getch();
+        //cout << _getch();
         /*becouse of bug*/
 
         switch (_getch()) {
@@ -587,7 +590,7 @@ void MenuHello() {
                 switch (menuOption) {
                     case 0: InputUsername(); break;
                     case 1: HelpMenu(); break;
-                    case 2: FileOpen(0, 0, 0); break;
+                    //case 2: FileOpen(0, "", ""); break;
                     case 3: exit = 0; break;
                 }
             }break;
@@ -602,7 +605,7 @@ void MenuHello() {
 
 int main() {
     SetConsoleOutputCP(1251);
-    FieldSize(15);
+    FileOpen(0, "", "");
 }
 /*алгоритм открытия ячеек
 
