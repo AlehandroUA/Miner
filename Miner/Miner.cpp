@@ -6,14 +6,29 @@
 #include <queue>
 #include <conio.h>
 #include <windows.h>
+#include "Miner.h"
 using namespace std;
 
-char Temp_U[] = "user_temp.txt";
-char Users[] = "users.txt";
-const int KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54, K_1=49;
-const int Enter = 13, F = 102, H = 104;
-const int Mine = 9;
-const int fieldFlag = 11, fieldOpen = 0, fieldCursor = -1, fieldClosed = -2;
+typedef const int keyPressedValue;
+typedef const int fileValue;
+typedef const short int consolePosition;
+typedef const int color;
+
+char fileTempUser[] = "user_temp.txt";
+char fileMainUsers[] = "users.txt";
+HANDLE consoleWindow = GetStdHandle(STD_OUTPUT_HANDLE);
+consolePosition centerX = 45;
+consolePosition centerY = 5;
+keyPressedValue KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54;
+keyPressedValue Enter = 13, F = 102, H = 104;
+color selected = 206;
+color selectedNot = 62;
+color warningOrError = 79;
+color difficulty = 47;
+color black = 0;
+color cursor = 68, open = 256, mineFlag = 175, closed = 136;
+fileValue Mine = 9;
+fileValue fieldFlag = 11, fieldOpen = 0, fieldCursor = -1, fieldClosed = -2;
 int row[] = { -1,  0, 0, 1, 1, -1, -1,  1};
 int col[] = {  0, -1, 1, 0, 1, -1,  1, -1};
 
@@ -27,22 +42,22 @@ struct user{
 };
 
 int lines() {
-     string check;
-     ifstream file(Users);
-     int lines_count = 0;
-     if (file.peek() == EOF)
-     {
-         return 0;
-     }
-     while (getline(file, check))
-     {
-         lines_count++;
-     }
+    string check;
+    ifstream file(fileMainUsers);
+    int lines_count = 0;
+    if (file.peek() == EOF)
+    {
+        return 0;
+    }
+    while (getline(file, check))
+    {
+        lines_count++;
+    }
 
-     file.close();
-     return lines_count;
- }
- 
+    file.close();
+    return lines_count;
+}
+
 int inRange(vector<vector<int>>& field, int i, int j, int target) {
      if (target == 0) {
          return(i >= 0 && i < field.size()) && (j >= 0 && j < field[0].size() && field[i][j] != Mine);
@@ -53,25 +68,67 @@ int inRange(vector<vector<int>>& field, int i, int j, int target) {
      }
 }
 
+void fileBubleSort(int countOfLines, struct user ptr[]) {
+    bool exit;
+    int tempSum=0, tempScore=0, tempSizeMap=0, tempDifficulty=0;
+    string tempName, tempPassword;
+    for (int i = 0; i < countOfLines; i++) {
+        if (countOfLines > 1) {
+            do {
+                exit = false;
+                for (int i = 0; i < countOfLines; i++) {
+                    if (i+1!=countOfLines && ptr[i + 1].sum > ptr[i].sum) {
+
+                        tempSum = ptr[i].sum;
+                        tempScore = ptr[i].score;
+                        tempSizeMap = ptr[i].size;
+                        tempDifficulty = ptr[i].difficulty;
+                        tempName = ptr[i].userName;
+                        tempPassword = ptr[i].passWord;
+
+                        ptr[i].sum = ptr[i + 1].sum;
+                        ptr[i].score = ptr[i + 1].score;
+                        ptr[i].size = ptr[i + 1].size;
+                        ptr[i].difficulty = ptr[i + 1].difficulty;
+                        ptr[i].userName = ptr[i + 1].userName;
+                        ptr[i].passWord = ptr[i + 1].passWord;
+
+                        ptr[i + 1].sum = tempSum;
+                        ptr[i + 1].score = tempScore;
+                        ptr[i + 1].size = tempSizeMap;
+                        ptr[i + 1].difficulty = tempDifficulty;
+                        ptr[i + 1].userName = tempName;
+                        ptr[i + 1].passWord = tempPassword;
+                        exit = true;
+                    }
+                }
+            } while (exit);
+        }
+    }
+    for (int i = 0; i < countOfLines; i++) {
+        cout << i + 1 << " Місце; - Нік: " << ptr[i].userName << " Мін залишилось: " << ptr[i].score << " Відсоток заповненості поля: " << ptr[i].difficulty << "%; Розмір поля: " << ptr[i].size << endl;
+    }
+}
+
 int fileOpen(int Comparison, string Name, string Password) {
-    int i = 0;
-    int countOfLines = lines();
-    const int countOfLines_C = lines();
+    const int countOfLines = lines();
     int tempScore = 0, tempSizeMap = 0, tempDifficuty = 0, tempSum = 0;
-    user* ptr = new user[countOfLines_C];
+    user* ptr = new user[countOfLines];
     bool exit = true;
-    ifstream file(Users);
+    ifstream file(fileMainUsers);
     string tempName, tempPassword;
     system("cls");
     if (file.peek() == EOF)
     {
         if (Comparison == 0) {
             cout<<"\n\tЗаписів нема! Ви - перший!"<<endl;
+            SetConsoleTextAttribute(consoleWindow, selected);
             system("pause");
+            SetConsoleTextAttribute(consoleWindow, black);
         }
         return 0;
     }
-    for(int i =0;i<countOfLines_C;i++){
+    for(int i = 0;i<countOfLines;i++){
         file >> ptr[i].userName;
         file >> ptr[i].passWord;
         file >> ptr[i].score;
@@ -102,54 +159,57 @@ int fileOpen(int Comparison, string Name, string Password) {
         return 1;
     }
 
-    for (i = 0; i < countOfLines_C; i++) {
+    fileBubleSort(countOfLines, ptr);
 
-        do {
-
-            exit = false;
-            for (i = 0; i < countOfLines_C; i++) {
-
-                    if (ptr[i + 1].sum > 0 && ptr[i + 1].sum > ptr[i].sum) {
-                        tempSum = ptr[i].sum;
-                        tempScore = ptr[i].score;
-                        tempSizeMap = ptr[i].size;
-                        tempDifficuty = ptr[i].difficulty;
-                        tempName = ptr[i].userName;
-                        tempPassword = ptr[i].passWord;
-
-                        ptr[i].sum = ptr[i + 1].sum;
-                        ptr[i].score = ptr[i + 1].score;
-                        ptr[i].size = ptr[i + 1].size;
-                        ptr[i].difficulty = ptr[i + 1].difficulty;
-                        ptr[i].userName = ptr[i + 1].userName;
-                        ptr[i].passWord = ptr[i + 1].passWord;
-
-                        ptr[i + 1].sum = tempSum;
-                        ptr[i + 1].score = tempScore;
-                        ptr[i + 1].size = tempSizeMap;
-                        ptr[i + 1].difficulty = tempDifficuty;
-                        ptr[i + 1].userName = tempName;
-                        ptr[i + 1].passWord = tempPassword;
-                        exit = true;
-                    }
-            }
-        } while (exit);
-    }
-    for (i = 0; i < countOfLines_C; i++) {
-        cout << "" << i + 1 << " Місце; - Нік: " << ptr[i].userName << " Мін залишилось: " << ptr[i].score << " Відсоток заповненості поля: " << ptr[i].difficulty << "%; Розмір поля: " << ptr[i].size << endl;
-    }
+    SetConsoleTextAttribute(consoleWindow, selected);
     system("pause");
+    SetConsoleTextAttribute(consoleWindow, black);
     delete[]ptr;
 
     return 0;
-
 }
-/*decompose FileOpen*/
 
 void helpMenu() {
     system("cls");
-    cout << "\t\tEnter - Взаємодія з полем\n\t\tF - Поставити флаг\n\t\tУПРАВЛІННЯ:\n\t\t 8  \n\t\t4 6 \t \n\t\t 2" << endl;
+    SetConsoleTextAttribute(consoleWindow, selected);
+    SetConsoleCursorPosition(consoleWindow, {centerX-5, centerY});
+    cout << "Enter - Взаємодія з полем";
+    SetConsoleTextAttribute(consoleWindow, black);
+
+    SetConsoleTextAttribute(consoleWindow, selected);
+    SetConsoleCursorPosition(consoleWindow, {centerX-5, centerY + 1});
+    cout << "F - Поставити флаг";
+    SetConsoleTextAttribute(consoleWindow, black);
+
+    SetConsoleTextAttribute(consoleWindow, selected);
+    SetConsoleCursorPosition(consoleWindow, {centerX-5, centerY + 2});
+    cout << "УПРАВЛІННЯ:";
+    SetConsoleTextAttribute(consoleWindow, black);
+
+    SetConsoleTextAttribute(consoleWindow, selected);
+    SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 3});
+    cout << "8";
+    SetConsoleTextAttribute(consoleWindow, black);
+
+    SetConsoleTextAttribute(consoleWindow, selected);
+    SetConsoleCursorPosition(consoleWindow, {centerX - 2, centerY + 4});
+    cout << "4";
+    SetConsoleTextAttribute(consoleWindow, black);
+
+    SetConsoleTextAttribute(consoleWindow, selected);
+    SetConsoleCursorPosition(consoleWindow, {centerX + 2, centerY + 4});
+    cout << "6";
+    SetConsoleTextAttribute(consoleWindow, black);
+
+    SetConsoleTextAttribute(consoleWindow, selected);
+    SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 5});
+    cout << "2";
+    SetConsoleTextAttribute(consoleWindow, black);
+
+    SetConsoleCursorPosition(consoleWindow, {centerX-5, centerY + 7});
+    SetConsoleTextAttribute(consoleWindow, selected);
     system("pause");
+    SetConsoleTextAttribute(consoleWindow, black);
 }
 
 void floodFill(vector<vector<int>>& fieldMine, int x, int y, int replacement)
@@ -182,14 +242,9 @@ void floodFill(vector<vector<int>>& fieldMine, int x, int y, int replacement)
     }
 }
 
-void commonInput(bool rewrite, string name, string passWord, int minesCount, int difficulty, int size) {
+void commonInput(string name, string passWord, int minesCount, int difficulty, int size) {
     ofstream fileIn;
-    if (rewrite) {
-        fileIn.open(Users);
-    }
-    else {
-        fileIn.open(Users, ios::app);
-    }
+    fileIn.open(fileMainUsers, ofstream::app);
 
     if (fileIn.is_open()) {
         fileIn << name;
@@ -207,15 +262,19 @@ void commonInput(bool rewrite, string name, string passWord, int minesCount, int
 }
 
 int structCheck(string name, string password, int score, int difficulty, int sizemap) {
-    int countOfLines_C = lines();
+    int countOfLines = lines();
+    if (countOfLines == 0) {
+        return 0;
+    }
     int tempSum, tempScore, tempSizeMap, tempDifficulty;
+    bool sameName=false;
 
     string tempName, tempPassword;
-    ifstream file(Users);
+    ifstream file(fileMainUsers);
     ofstream fileRewrite;
-    user* ptr = new user[countOfLines_C];
+    user* ptr = new user[countOfLines];
 
-    for (int i = 0; i < countOfLines_C; i++) {
+    for (int i = 0; i < countOfLines; i++) {
         file >> ptr[i].userName;
         file >> ptr[i].passWord;
         file >> ptr[i].score;
@@ -223,11 +282,12 @@ int structCheck(string name, string password, int score, int difficulty, int siz
         file >> ptr[i].size;
     }
     file.close();
-    cout << endl;
-    for (int i = 0; i < countOfLines_C; i++) {
+   
+    for (int i = 0; i < countOfLines; i++) {
         if (name == ptr[i].userName) {
-            if (countOfLines_C == 1) {
-                fileRewrite.open(Users);
+            sameName = true;
+            if (countOfLines == 1) { 
+                fileRewrite.open(fileMainUsers);
                 fileRewrite.close();
                 return 0;
             }
@@ -252,10 +312,15 @@ int structCheck(string name, string password, int score, int difficulty, int siz
             }
         }
     }
-    fileRewrite.open(Users);
-    for (int i = 0; i < countOfLines_C - 1; i++) {
+
+    if (!sameName) {
+        return 0;
+    }
+    fileRewrite.open(fileMainUsers);
+
+    for (int i = 0; i < countOfLines-1; i++) {
         if (fileRewrite.is_open()) {
-            commonInput(true, ptr[i].userName, ptr[i].passWord, ptr[i].score, ptr[i].difficulty, ptr[i].size);
+            commonInput(ptr[i].userName, ptr[i].passWord, ptr[i].score, ptr[i].difficulty, ptr[i].size);
         }
         
     }
@@ -264,7 +329,7 @@ int structCheck(string name, string password, int score, int difficulty, int siz
 }
 
 void gameFileTemptToMain(string name, string passWord, int minesCount, int difficulty,int size) {
-    ifstream fileOut(Temp_U);
+    ifstream fileOut(fileTempUser);
 
     if (fileOut.is_open()) {
         fileOut >> name;
@@ -274,60 +339,97 @@ void gameFileTemptToMain(string name, string passWord, int minesCount, int diffi
 
     structCheck(name, passWord, minesCount, difficulty, size);
 
-    commonInput(false, name, passWord, minesCount, difficulty, size);
+    commonInput(name, passWord, minesCount, difficulty, size);
 }
 
-void gameFieldOutputView(vector<vector<int>> fieldView,int height, int width, int flags, int minesStat) {
+void gameFieldOutputView(vector<vector<int>> fieldView,int height, int width, int flags, int minesStat, int iO, int jO) {
     system("cls");
-    cout << "\tКількість флажків: " << flags << "\t Кількість мін: " << minesStat << "; H - Допомогти\n" << endl;
+    short int centerMoveY = centerY;
+    short int centerMoveX = centerX;
+
+    SetConsoleTextAttribute(consoleWindow, selected);
+    SetConsoleCursorPosition(consoleWindow, {centerX-10, centerY-2});
+    cout << "Кількість флажків: " << flags << " Кількість мін: " << minesStat << "; H - Допомогти";
+    SetConsoleTextAttribute(consoleWindow, black);
+
     for (int i = 0; i < height; i++) {
 
-        cout << "\t\t\t";
+        centerMoveY += 1;
+        SetConsoleCursorPosition(consoleWindow, {centerMoveX, centerMoveY});
         for (int j = 0; j < width; j++) {
+            centerMoveX += 1;
+            SetConsoleCursorPosition(consoleWindow, {centerMoveX, centerMoveY});
+            if (i == iO && j == jO) {
+                continue;
+            }
             switch (fieldView[i][j]) {
-                case fieldCursor: {
+                case fieldOpen: {
+                    SetConsoleTextAttribute(consoleWindow, cursor);
                     cout << " ";
                     break;
                 }
-                case fieldOpen: {
-                    cout << "/";
-                    break;
-                }
                 case fieldFlag: {
-                    cout << "P";
+                    SetConsoleTextAttribute(consoleWindow, mineFlag);
+                    cout << " ";
                     break;
                 }
                 case fieldClosed: {
-                    cout << "0";
+                    SetConsoleTextAttribute(consoleWindow, closed);
+                    cout << " ";
                     break;
                 }
                 default: {
+                    SetConsoleTextAttribute(consoleWindow, selected);
                     cout << fieldView[i][j];
                     break;
                 }
             }
+            SetConsoleTextAttribute(consoleWindow, black);
         }
-        cout << endl;
+        centerMoveX = centerX;
     }
 }
 
 void gameFieldOutputEnd(vector<vector<int>> fieldMines, int height, int width, int flags, int minesStat,int minesCount,int& end) {
-    for (int i = 0; i < height; i++) {
-        cout << "\t\t\t";
+    system("cls");
+    short int centerMoveY = centerY;
+    short int centerMoveX = centerX;
+    
+    for (short int i = 0; i < height; i++) { 
+        centerMoveY += 1;
+        SetConsoleCursorPosition(consoleWindow, {centerMoveX, centerMoveY});
         for (int j = 0; j < width; j++) {
-
+            centerMoveX += 1;
+            SetConsoleCursorPosition(consoleWindow, {centerMoveX, centerMoveY});
             if (fieldMines[i][j] == Mine) {
+                SetConsoleTextAttribute(consoleWindow, selected);
                 cout << "*";
             }
             else {
+                SetConsoleTextAttribute(consoleWindow, selectedNot);
                 cout << "0";
             }
+            SetConsoleTextAttribute(consoleWindow, black);
         }
+        centerMoveX = centerX;
         cout << endl;
     }
-    cout << "\t\tКАБУМ!!!!!!\n\t\tВаш рекорд: " << minesCount << endl;
-    end = 0;
+
+    centerMoveY += 1;
+    SetConsoleCursorPosition(consoleWindow, {centerX, centerMoveY});
+    SetConsoleTextAttribute(consoleWindow, warningOrError);
+    cout << "КАБУМ!!!!!!";
+    SetConsoleTextAttribute(consoleWindow, black);
+
+    centerMoveY += 1;
+    SetConsoleCursorPosition(consoleWindow, { centerX, centerMoveY });
+    SetConsoleTextAttribute(consoleWindow, selected);
+    cout << "Ваш рекорд : " << minesCount ;
+    SetConsoleTextAttribute(consoleWindow, black);
+
+    SetConsoleTextAttribute(consoleWindow, selected);
     system("pause");
+    SetConsoleTextAttribute(consoleWindow, black);
 }
 
 void gameEnterFilling(vector<vector<int>> fieldMines, vector<vector<int>>& fieldView, int i, int j) {
@@ -361,7 +463,7 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
 
     do {
 
-        gameFieldOutputView(fieldView, height, width, flags, minesStat);
+        gameFieldOutputView(fieldView, height, width, flags, minesStat, iO, jO);
        
         switch (_getch()) {
 
@@ -445,7 +547,8 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
                     }
                 }
                 else {
-                    gameFieldOutputEnd(fieldView, height, width, flags, minesStat, minesCount, end);
+                    gameFieldOutputEnd(fieldMines, height, width, flags, minesStat, minesCount, end);
+                    end = 0;
                 }
             break;
             }
@@ -480,8 +583,15 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
         if (minesCount == 0) {
             end = 0;
             system("cls");
-            printf("\t\tПЕРЕМОГА!!! ВИ ЗМОГЛИ!!!\n");
+            SetConsoleCursorPosition(consoleWindow, {centerX, centerY});
+            SetConsoleTextAttribute(consoleWindow, selected);
+            printf("ПЕРЕМОГА!!! ВИ ЗМОГЛИ!!!");
+            SetConsoleTextAttribute(consoleWindow, black);
+
+            SetConsoleCursorPosition(consoleWindow, { centerX, centerY+1 });
+            SetConsoleTextAttribute(consoleWindow, selected);
             system("pause");
+            SetConsoleTextAttribute(consoleWindow, black);
         }
 
     } while (end);
@@ -541,13 +651,24 @@ void fieldSize(int difficulty) {
 
     do {
         system("cls");
-        cout << "\t\tРозмірність поля:\n" << endl;
+        SetConsoleCursorPosition(consoleWindow, {centerX, centerY - 1});
+        SetConsoleTextAttribute(consoleWindow, selected);
+        cout << "Розмірність поля:" << endl;
+        SetConsoleTextAttribute(consoleWindow, black);
 
-        cout << "\tВведіть висоту поля: "; 
+        SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 1});
+        SetConsoleTextAttribute(consoleWindow, selectedNot);
+        cout << "Введіть висоту поля: "; 
+        SetConsoleTextAttribute(consoleWindow, selected);
         cin >> height;
+        SetConsoleTextAttribute(consoleWindow, black);
 
-        cout << "\tВведіть ширину поля: "; 
+        SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 2});
+        SetConsoleTextAttribute(consoleWindow, selectedNot);
+        cout << "Введіть ширину поля: "; 
+        SetConsoleTextAttribute(consoleWindow, selected);
         cin >> width;
+        SetConsoleTextAttribute(consoleWindow, black);
     } while (height < 2 || width < 2);
 
     fieldFilling(difficulty, height, width);
@@ -560,32 +681,77 @@ int difficultyMenu() {
 
     system("cls");
     do {
-
-        cout << "\t\tВиберіть рівень складності:\n" << endl;
-
+        SetConsoleTextAttribute(consoleWindow, selected);
+        SetConsoleCursorPosition(consoleWindow, {centerX, centerY - 1});
+        cout << "Виберіть рівень складності:";
+        SetConsoleTextAttribute(consoleWindow, black);
         switch (1) {
             case 1: {
-                menuOption == 0 ? cout << "\t> Легко" << endl : cout << "\tЛегко" << endl;
+                SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 1});
+                SetConsoleTextAttribute(consoleWindow, difficulty);
+                if (menuOption == 0) {
+                    cout << "> Легко";
+                }
+                else { 
+                    cout << "Легко";
+                }
+                SetConsoleTextAttribute(consoleWindow, black);
             }
-
             case 2: {
-                menuOption == 1 ? cout << "\t> Середнє" << endl : cout << "\tСереднє" << endl; 
+                SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 2});
+                SetConsoleTextAttribute(consoleWindow, difficulty + 16);
+                if (menuOption == 1) {
+                    cout << "> Середнє";
+                }
+                else {
+                    cout << "Середнє"; 
+                }
+                SetConsoleTextAttribute(consoleWindow, black);
             }
-
             case 3: {
-                menuOption == 2 ? cout << "\t> Важко" << endl : cout << "\tВажко" << endl; 
+                SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 3});
+                SetConsoleTextAttribute(consoleWindow, difficulty + 32);
+                if (menuOption == 2) {
+                    cout << "> Важко";
+                }
+                else {
+                    cout << "Важко";
+                }
+                SetConsoleTextAttribute(consoleWindow, black);
             }
-
             case 4: {
-                menuOption == 3 ? cout << "\t> Хардкор" << endl : cout << "\tХардкор" << endl; 
+                SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 4});
+                SetConsoleTextAttribute(consoleWindow, difficulty + 48);
+                if (menuOption == 3) {
+                    cout << "> Хардкор";
+                }
+                else {
+                    cout << "Хардкор";
+                }
+                SetConsoleTextAttribute(consoleWindow, black);
             }
-
             case 5: {
-                menuOption == 4 ? cout << "\t> Налаштувати" << endl : cout << "\tНалаштувати" << endl; 
+                SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 5});
+                SetConsoleTextAttribute(consoleWindow, difficulty + 54);
+                if (menuOption == 4) {
+                    cout << "> Налаштувати";
+                }
+                else {
+                    cout << "Налаштувати";
+                }
+                SetConsoleTextAttribute(consoleWindow, black);
             }
-
             case 6: {
-                menuOption == 5 ? cout << "\t> Назад" << endl : cout << "\tНазад" << endl; 
+                SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 6});
+                if (menuOption == 5) {
+                    SetConsoleTextAttribute(consoleWindow, selected);
+                    cout << "> Назад";
+                }
+                else {
+                    SetConsoleTextAttribute(consoleWindow, selectedNot);
+                    cout << "Назад";
+                }
+                SetConsoleTextAttribute(consoleWindow, black);
             }
         }
 
@@ -625,8 +791,12 @@ int difficultyMenu() {
                     case 4: {
                         do {
                             system("cls");
-                            cout << "\t\tВведіть відсоток заповненості поля мінами: ";
+                            SetConsoleCursorPosition(consoleWindow, {centerX, centerY});
+                            SetConsoleTextAttribute(consoleWindow, selectedNot);
+                            cout << "Введіть відсоток заповненості поля мінами: ";
+                            SetConsoleTextAttribute(consoleWindow, selected);
                             cin >> diffuculty;
+                            SetConsoleTextAttribute(consoleWindow, black);
                         } while (diffuculty > 99 || diffuculty <= 0);
                         break;
                     }
@@ -648,11 +818,14 @@ string inputPassword() {
     string passWord;
     do {
         system("cls");
+        SetConsoleTextAttribute(consoleWindow, selectedNot);
+        SetConsoleCursorPosition(consoleWindow, {centerX, centerY});
         cout << "Введіть пароль(до 30 символів)!: ";
+        SetConsoleTextAttribute(consoleWindow, selected);
         cin >> passWord;
-
+        
     } while (passWord.size() > 30);
-
+    SetConsoleTextAttribute(consoleWindow, black);
     return passWord;
 }
 
@@ -660,15 +833,19 @@ string inputUsername() {
     string userName;
     do {
         system("cls");
-        cout << "\n\t\tвведіть нік(15 символів): ";
+        SetConsoleTextAttribute(consoleWindow, selectedNot);
+        SetConsoleCursorPosition(consoleWindow, {centerX, centerY});
+        cout << "введіть нік(15 символів): ";
+        SetConsoleTextAttribute(consoleWindow, selected);
         cin >> userName;
-
+        
     } while (userName.size() > 15);
+    SetConsoleTextAttribute(consoleWindow, black);
     return userName;
 }
 
 void authorizationTempFileInput(string userName,string passWord) {
-    ofstream fileIn(Temp_U);
+    ofstream fileIn(fileTempUser);
     if (fileIn.is_open()) {
         fileIn << userName;
         fileIn << " ";
@@ -679,7 +856,9 @@ void authorizationTempFileInput(string userName,string passWord) {
 
 void authorization() {
     system("cls");
-    int comparison=0;
+    int comparison = 0;
+    int menuOption = 0;
+    int exit = 1;
     string passWord;
     string userName;
     do {
@@ -688,23 +867,69 @@ void authorization() {
         comparison = fileOpen(1, userName,"");
 
         if (comparison == 1) {
-            system("cls");
             passwordAgain:
-            cout << "нік зайнято! введіть:\n1 - новий нік\n2 - пароль" << endl;
+            system("cls");
 
-            switch (_getch()) {
-            case K_1: { 
-                goto nicknameenter;
-            }
-            case KP_2: {
-                passWord = inputPassword();
-                comparison = fileOpen(2, userName, passWord);
-                if (comparison == 1) {
-                    goto passwordAgain;
+            do {
+                SetConsoleTextAttribute(consoleWindow, warningOrError);
+                SetConsoleCursorPosition(consoleWindow, {centerX, centerY - 1});
+                cout << "нік зайнято! введіть:";
+                SetConsoleTextAttribute(consoleWindow, black);
+                switch (1) {
+                    case 1: {
+                        SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 1});
+                        if (menuOption == 0) {
+                            SetConsoleTextAttribute(consoleWindow, selected);
+                            cout << "> Новий нік";
+                        }
+                        else {
+                            SetConsoleTextAttribute(consoleWindow, selectedNot);
+                            cout << "Новий нік";
+                        }
+                        SetConsoleTextAttribute(consoleWindow, black);
+                    }
+                    case 2: {
+                        SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 2});
+                        if (menuOption == 1) {
+                            SetConsoleTextAttribute(consoleWindow, selected);
+                            cout << "> Пароль";
+                        }
+                        else {
+                            SetConsoleTextAttribute(consoleWindow, selectedNot);
+                            cout << "Пароль";
+                        }
+                        SetConsoleTextAttribute(consoleWindow, black);
+                    }
                 }
-                break;
-              }
-            }
+
+                switch (_getch()) {
+                case KP_8: {
+                    menuOption > 0 ? menuOption-- : menuOption = 1;
+                    break;
+                }
+                case KP_2: {
+                    menuOption < 1 ? menuOption++ : menuOption = 0;
+                    break;
+                }
+                case Enter: {
+                    switch (menuOption) {
+                        case 0: {
+                            goto nicknameenter;
+                        }
+                        case 1: {
+                            passWord = inputPassword();
+                            comparison = fileOpen(2, userName, passWord);
+                            if (comparison == 1) {
+                                goto passwordAgain;
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+                }
+                system("cls");
+            } while (exit);
         }
 
     } while (comparison == 1);
@@ -722,27 +947,63 @@ void menuHello() {
     int exit = 1;
 
     do {
-        cout << "\t\tСАПЕР V 2.2.9. BETA \n\n" << endl;
+        SetConsoleTextAttribute(consoleWindow, selected);
+        SetConsoleCursorPosition(consoleWindow, {centerX, centerY - 1});
+        cout << "САПЕР REALISE ";
+        SetConsoleTextAttribute(consoleWindow, black);
         switch (1) {
             case 1: {
-                menuOption == 0 ? cout << "\t> Нова гра" << endl : cout << "\tНова гра" << endl;
+                
+                SetConsoleCursorPosition(consoleWindow, {centerX+1, centerY + 1});
+                if (menuOption == 0) {
+                    SetConsoleTextAttribute(consoleWindow, selected);
+                    cout << "> Нова гра" << endl;
+                }
+                else {
+                    SetConsoleTextAttribute(consoleWindow, selectedNot);
+                    cout << "Нова гра" << endl;
+                }
+                SetConsoleTextAttribute(consoleWindow, black);
             }
-
             case 2: {  
-                menuOption == 1 ? cout << "\t> Допомога" << endl : cout << "\tДопомога" << endl; 
+                
+                SetConsoleCursorPosition(consoleWindow, {centerX + 1, centerY + 2});
+                if (menuOption == 1) {
+                    SetConsoleTextAttribute(consoleWindow, selected);
+                    cout << "> Допомога";
+                }
+                else {
+                    SetConsoleTextAttribute(consoleWindow, selectedNot);
+                    cout << "Допомога";
+                }
+                SetConsoleTextAttribute(consoleWindow, black);
             }
-
             case 3: {
-                menuOption == 2 ? cout << "\t> Таблиця лідерів" << endl : cout << "\tТаблиця лідерів" << endl; 
+                
+                SetConsoleCursorPosition(consoleWindow, {centerX + 1, centerY + 3});
+                if (menuOption == 2) {
+                    SetConsoleTextAttribute(consoleWindow, selected);
+                    cout << "> Таблиця лідерів";
+                }
+                else {
+                    SetConsoleTextAttribute(consoleWindow, selectedNot);
+                    cout << "Таблиця лідерів";
+                }
+                SetConsoleTextAttribute(consoleWindow, black);
             }
-
             case 4: {
-                menuOption == 3 ? cout << "\t> Вихід" << endl : cout << "\tВихід" << endl; 
+                SetConsoleCursorPosition(consoleWindow, {centerX + 1, centerY + 4});
+                if (menuOption == 3) {
+                    SetConsoleTextAttribute(consoleWindow, selected);
+                    cout << "> Вихід";
+                }
+                else {
+                    SetConsoleTextAttribute(consoleWindow, selectedNot);
+                    cout << "Вихід";
+                }
+                SetConsoleTextAttribute(consoleWindow, black);
             }
         }
-
-        //cout << _getch();
-        /*becouse of bug*/
 
         switch (_getch()) {
             case KP_8: {
@@ -782,32 +1043,14 @@ void menuHello() {
         }
         system("cls");
     } while (exit);
-
+    SetConsoleTextAttribute(consoleWindow, selected);
+    SetConsoleCursorPosition(consoleWindow, { centerX,centerY + 3 });
     cout <<"\tДо зустрічі!" << endl;
+    SetConsoleCursorPosition(consoleWindow, { centerX,centerY + 7 });
+    SetConsoleTextAttribute(consoleWindow, 15);
 }
 
 int main() {
     SetConsoleOutputCP(1251);
     menuHello();
 }
-/*алгоритм открытия ячеек
-
-  файл +
-
-  вин апи
-- Меню по центру
-- Цветной текст
-
-  Осталось доработать:
-  - Добавить профиль игрока +
-        - Ввод ника +
-        - Проверка файла +
-  - Добавить таблицу рекордов +
-        - распознование +
-  - Добавить АККАУНТЫ для игроков +
-        - пароль +
-  
-  - Алгоритм открытия +
-  - Немного интерактива
-  - Пасхалки
-  */
