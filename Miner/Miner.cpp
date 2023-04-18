@@ -5,6 +5,8 @@
 #include <queue>
 #include <conio.h>
 #include <windows.h>
+#include <limits>
+#include<ios>
 #include <time.h>
 using namespace std;
 
@@ -18,7 +20,7 @@ char fileMainUsers[] = "users.txt";
 HANDLE consoleWindow = GetStdHandle(STD_OUTPUT_HANDLE);
 consolePosition centerX = 45;
 consolePosition centerY = 5;
-keyPressedValue KP_8 = 56, KP_4 = 52, KP_2 = 50, KP_6 = 54;
+keyPressedValue UP = 0x48, LEFT = 0x4D, DOWN = 0x50, RIGHT = 0x4B;
 keyPressedValue Enter = 13, F = 102, H = 104;
 color selected = 206;
 color selectedNot = 62;
@@ -196,24 +198,15 @@ void helpMenu() {
     cout << "УПРАВЛІННЯ:";
     SetConsoleTextAttribute(consoleWindow, black);
 
+
     SetConsoleTextAttribute(consoleWindow, selected);
-    SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 3});
-    cout << "8";
+    SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 4});
+    cout << "^";
     SetConsoleTextAttribute(consoleWindow, black);
 
     SetConsoleTextAttribute(consoleWindow, selected);
-    SetConsoleCursorPosition(consoleWindow, {centerX - 2, centerY + 4});
-    cout << "4";
-    SetConsoleTextAttribute(consoleWindow, black);
-
-    SetConsoleTextAttribute(consoleWindow, selected);
-    SetConsoleCursorPosition(consoleWindow, {centerX + 2, centerY + 4});
-    cout << "6";
-    SetConsoleTextAttribute(consoleWindow, black);
-
-    SetConsoleTextAttribute(consoleWindow, selected);
-    SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 5});
-    cout << "2";
+    SetConsoleCursorPosition(consoleWindow, {centerX - 1, centerY + 5});
+    cout << "<|>";
     SetConsoleTextAttribute(consoleWindow, black);
 
     SetConsoleCursorPosition(consoleWindow, {centerX-5, centerY + 7});
@@ -226,10 +219,9 @@ void floodFill(vector<vector<int>>& fieldMine, int x, int y, int replacement)
 {
     queue<pair<int, int>> q;
     q.push({ x, y });
-
     int target_Main = fieldMine[x][y];
 
-    if (target_Main != -2) {
+    if (target_Main != fieldClosed) {
         return;
     }
 
@@ -479,7 +471,7 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
        
         switch (_getch()) {
 
-            case KP_8:{
+            case UP:{
                 if (iO > 0) {
                     iO--;
                     if (fieldView[iO + 1][jO] == fieldCursor) {
@@ -495,7 +487,7 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
             break;
             }
 
-            case KP_2: {
+            case DOWN: {
                 if (iO < height - 1) {
                     iO++;
                     if (fieldView[iO - 1][jO] == fieldCursor) {
@@ -512,7 +504,7 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
             break;
             }
 
-            case KP_4: {
+            case LEFT: {
                 if (jO > 0) {
                     jO--;
                     if (fieldView[iO][jO + 1] == fieldCursor) {
@@ -529,7 +521,7 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
             break;
             }
 
-            case KP_6: {
+            case RIGHT: {
                 if (jO < width - 1) {
                     jO++;
                     if (fieldView[iO][jO - 1] == fieldCursor) {
@@ -626,7 +618,7 @@ void fieldMinesToEmptyValue(vector<vector<int>>& field, int height, int width) {
 void fieldCreating(vector<vector<int>>& field, vector<vector<int>>& fieldOn, int height, int width) {
     for (int i = 0; i < height; i++)
     {
-            fieldOn[i].resize(width, -2);
+            fieldOn[i].resize(width, fieldClosed);
             field[i].resize(width);
     }
 }
@@ -663,7 +655,7 @@ void fieldFilling(int difficulty, int height, int width) {
 
 void fieldSize(int difficulty) {
     int height = 0, width = 0;
-
+    bool error=false;
     do {
         system("cls");
         SetConsoleCursorPosition(consoleWindow, {centerX, centerY - 1});
@@ -677,16 +669,25 @@ void fieldSize(int difficulty) {
         SetConsoleTextAttribute(consoleWindow, selected);
         cin >> height;
         SetConsoleTextAttribute(consoleWindow, black);
-
+        if (height == 0) {
+            cin.clear();
+            cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+            continue;
+        }
         SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 2});
         SetConsoleTextAttribute(consoleWindow, selectedNot);
         cout << "Введіть ширину поля: "; 
         SetConsoleTextAttribute(consoleWindow, selected);
         cin >> width;
         SetConsoleTextAttribute(consoleWindow, black);
+        if (width == 0) {
+            cin.clear();
+            cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+            continue;
+        }
     } while (height < 2 || width < 2);
 
-    fieldFilling(difficulty, height, width);
+   fieldFilling(difficulty, height, width);
 }
 
 int difficultyMenu() {
@@ -771,12 +772,12 @@ int difficultyMenu() {
         }
 
         switch (_getch()) {
-            case KP_8: { 
+            case UP: { 
                 menuOption > 0 ? menuOption-- : menuOption = 5;
                 break;
             }
 
-            case KP_2: {
+            case DOWN: {
                 menuOption < 5 ? menuOption++ : menuOption = 0;
                 break;
             }
@@ -811,7 +812,12 @@ int difficultyMenu() {
                             cout << "Введіть відсоток заповненості поля мінами: ";
                             SetConsoleTextAttribute(consoleWindow, selected);
                             cin >> diffuculty;
-                            SetConsoleTextAttribute(consoleWindow, black);
+                            SetConsoleTextAttribute(consoleWindow, black); 
+                            if (diffuculty == 0) {
+                                cin.clear();
+                                cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+                                continue;
+                            }
                         } while (diffuculty > 99 || diffuculty <= 0);
                         break;
                     }
@@ -918,11 +924,11 @@ void authorization() {
                 }
 
                 switch (_getch()) {
-                case KP_8: {
+                case UP: {
                     menuOption > 0 ? menuOption-- : menuOption = 1;
                     break;
                 }
-                case KP_2: {
+                case DOWN: {
                     menuOption < 1 ? menuOption++ : menuOption = 0;
                     break;
                 }
@@ -1024,12 +1030,12 @@ void menuHello() {
         }
 
         switch (_getch()) {
-            case KP_8: {
+            case UP: {
                 menuOption > 0 ? menuOption-- : menuOption = 3;
                 break; 
             }
 
-            case KP_2: {
+            case DOWN: {
                 menuOption < 3 ? menuOption++ : menuOption = 0;
                 break; 
             }
