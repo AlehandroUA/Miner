@@ -6,7 +6,6 @@
 #include <queue>
 #include <conio.h>
 #include <windows.h>
-#include "Miner.h"
 using namespace std;
 
 typedef const int keyPressedValue;

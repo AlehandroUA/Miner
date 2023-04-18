@@ -142,9 +142,6 @@
   <ItemGroup>
     <ClCompile Include="Miner.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Miner.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
