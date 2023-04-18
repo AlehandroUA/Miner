@@ -17,10 +17,11 @@ typedef const int color;
 
 char fileTempUser[] = "user_temp.txt";
 char fileMainUsers[] = "users.txt";
+char fileFirstTime[] = "first_time.txt";
 HANDLE consoleWindow = GetStdHandle(STD_OUTPUT_HANDLE);
 consolePosition centerX = 45;
 consolePosition centerY = 5;
-keyPressedValue UP = 0x48, LEFT = 0x4D, DOWN = 0x50, RIGHT = 0x4B;
+keyPressedValue UP = 119, RIGHT = 100, DOWN = 115, LEFT = 97;
 keyPressedValue Enter = 13, F = 102, H = 104;
 color selected = 206;
 color selectedNot = 62;
@@ -201,12 +202,12 @@ void helpMenu() {
 
     SetConsoleTextAttribute(consoleWindow, selected);
     SetConsoleCursorPosition(consoleWindow, {centerX, centerY + 4});
-    cout << "^";
+    cout << "W";
     SetConsoleTextAttribute(consoleWindow, black);
 
     SetConsoleTextAttribute(consoleWindow, selected);
     SetConsoleCursorPosition(consoleWindow, {centerX - 1, centerY + 5});
-    cout << "<|>";
+    cout << "ASD";
     SetConsoleTextAttribute(consoleWindow, black);
 
     SetConsoleCursorPosition(consoleWindow, {centerX-5, centerY + 7});
@@ -381,8 +382,13 @@ void gameFieldOutputView(vector<vector<int>> fieldView,int height, int width, in
                     break;
                 }
                 default: {
-                    SetConsoleTextAttribute(consoleWindow, selected);
-                    cout << fieldView[i][j];
+                    if (i == iO && j == jO) {
+                        SetConsoleTextAttribute(consoleWindow, black);
+                    }
+                    else {
+                        SetConsoleTextAttribute(consoleWindow, selected);
+                        cout << fieldView[i][j];
+                    }
                     break;
                 }
             }
@@ -468,9 +474,9 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
     do {
 
         gameFieldOutputView(fieldView, height, width, flags, minesStat, iO, jO);
-       
-        switch (_getch()) {
 
+        switch (_getch()) {
+            gameFieldOutputView(fieldView, height, width, flags, minesStat, iO, jO);
             case UP:{
                 if (iO > 0) {
                     iO--;
@@ -591,7 +597,7 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
             system("cls");
             SetConsoleCursorPosition(consoleWindow, {centerX, centerY});
             SetConsoleTextAttribute(consoleWindow, selected);
-            printf("ПЕРЕМОГА!!! ВИ ЗМОГЛИ!!!");
+            cout << "ПЕРЕМОГА!!! ВИ ЗМОГЛИ!!!";
             SetConsoleTextAttribute(consoleWindow, black);
 
             SetConsoleCursorPosition(consoleWindow, { centerX, centerY+1 });
@@ -858,10 +864,10 @@ string inputUsername() {
         SetConsoleCursorPosition(consoleWindow, {centerX, centerY});
         cout << "введіть нік(15 символів): ";
         SetConsoleTextAttribute(consoleWindow, selected);
-        cin >> userName;
-        
+        cin >> userName;  
+        SetConsoleTextAttribute(consoleWindow, black);
     } while (userName.size() > 15);
-    SetConsoleTextAttribute(consoleWindow, black);
+    
     return userName;
 }
 
@@ -1074,7 +1080,20 @@ void menuHello() {
     SetConsoleTextAttribute(consoleWindow, 15);
 }
 
+void firstTime() {
+    int firstTime=0;
+    ifstream fileRead(fileFirstTime);
+    ofstream fileCreate;
+    if (fileRead.peek() == EOF) {
+        fileCreate.open(fileFirstTime);
+        fileCreate << ":)";
+        helpMenu();
+        system("cls");
+    }
+}
+
 int main() {
     SetConsoleOutputCP(1251);
+    firstTime();
     menuHello();
 }
