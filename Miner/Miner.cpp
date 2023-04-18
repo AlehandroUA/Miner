@@ -1,11 +1,11 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <string>
-#include <stdio.h>
 #include <vector>
 #include <queue>
 #include <conio.h>
 #include <windows.h>
+#include <time.h>
 using namespace std;
 
 typedef const int keyPressedValue;
@@ -432,11 +432,13 @@ void gameFieldOutputEnd(vector<vector<int>> fieldMines, int height, int width, i
     SetConsoleTextAttribute(consoleWindow, black);
 
     centerMoveY += 1;
-    SetConsoleCursorPosition(consoleWindow, { centerX, centerMoveY });
+    SetConsoleCursorPosition(consoleWindow, {centerX, centerMoveY});
     SetConsoleTextAttribute(consoleWindow, selected);
-    cout << "Ваш рекорд : " << minesCount ;
+    cout << "Мін залишилось : " << minesCount ;
     SetConsoleTextAttribute(consoleWindow, black);
 
+    centerMoveY += 2;
+    SetConsoleCursorPosition(consoleWindow, { centerX, centerMoveY });
     SetConsoleTextAttribute(consoleWindow, selected);
     system("pause");
     SetConsoleTextAttribute(consoleWindow, black);
@@ -565,12 +567,14 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
 
             case F: {
                 if (fieldView[iO][jO] == fieldCursor) {
-                    if (fieldMines[iO][jO] == Mine) {
-                        minesCount--; flags--; fieldView[iO][jO] = fieldFlag;
-                    }
-                    else {
-                        flags--;
-                        fieldView[iO][jO] = fieldFlag;
+                    if (flags > 0) {
+                        if (fieldMines[iO][jO] == Mine) {
+                            minesCount--; flags--; fieldView[iO][jO] = fieldFlag;
+                        }
+                        else {
+                            flags--;
+                            fieldView[iO][jO] = fieldFlag;
+                        }
                     }
                 }
                 else if (fieldView[iO][jO] == fieldFlag) {
@@ -628,6 +632,7 @@ void fieldCreating(vector<vector<int>>& field, vector<vector<int>>& fieldOn, int
 }
 
 void fieldFilling(int difficulty, int height, int width) {
+    srand(time(NULL));
     int i = 0, j = 0;
     int minesLeft = 0, flags = 0;
     flags = minesLeft = height * width * (difficulty / 100.0);
