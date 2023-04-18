@@ -70,6 +70,7 @@ int inRange(vector<vector<int>>& field, int i, int j, int target) {
 
 void fileBubleSort(int countOfLines, struct user ptr[]) {
     bool exit;
+    short int centerMoveY = centerY;
     int tempSum=0, tempScore=0, tempSizeMap=0, tempDifficulty=0;
     string tempName, tempPassword;
     for (int i = 0; i < countOfLines; i++) {
@@ -106,7 +107,11 @@ void fileBubleSort(int countOfLines, struct user ptr[]) {
         }
     }
     for (int i = 0; i < countOfLines; i++) {
-        cout << i + 1 << " Місце; - Нік: " << ptr[i].userName << " Мін залишилось: " << ptr[i].score << " Відсоток заповненості поля: " << ptr[i].difficulty << "%; Розмір поля: " << ptr[i].size << endl;
+        SetConsoleCursorPosition(consoleWindow, {centerX - 40, centerMoveY});
+        SetConsoleTextAttribute(consoleWindow, selected);
+        cout << i + 1 << " Місце; - Нік: " << ptr[i].userName << " Мін залишилось: " << ptr[i].score << " Відсоток заповненості поля: " << ptr[i].difficulty << "%; Розмір поля: " << ptr[i].size <<"; Рейтинг: "<<ptr[i].sum ;
+        SetConsoleTextAttribute(consoleWindow, black);
+        centerMoveY += 1;
     }
 }
 
@@ -121,7 +126,12 @@ int fileOpen(int Comparison, string Name, string Password) {
     if (file.peek() == EOF)
     {
         if (Comparison == 0) {
-            cout<<"\n\tЗаписів нема! Ви - перший!"<<endl;
+            SetConsoleTextAttribute(consoleWindow, selected);
+            SetConsoleCursorPosition(consoleWindow, {centerX - 5, centerY - 2});
+            cout<<"Записів нема! Ви - перший!";
+            SetConsoleTextAttribute(consoleWindow, black);
+
+            SetConsoleCursorPosition(consoleWindow, {centerX - 5, centerY + 2});
             SetConsoleTextAttribute(consoleWindow, selected);
             system("pause");
             SetConsoleTextAttribute(consoleWindow, black);
@@ -161,6 +171,7 @@ int fileOpen(int Comparison, string Name, string Password) {
 
     fileBubleSort(countOfLines, ptr);
 
+    SetConsoleCursorPosition(consoleWindow, { centerX - 20, 0 });
     SetConsoleTextAttribute(consoleWindow, selected);
     system("pause");
     SetConsoleTextAttribute(consoleWindow, black);
@@ -921,6 +932,9 @@ void authorization() {
                             comparison = fileOpen(2, userName, passWord);
                             if (comparison == 1) {
                                 goto passwordAgain;
+                            }
+                            else {
+                                exit = 0;
                             }
                             break;
                         }
