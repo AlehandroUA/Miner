@@ -6,7 +6,7 @@
 #include <conio.h>
 #include <windows.h>
 #include <limits>
-#include<ios>
+#include <ios>
 #include <time.h>
 using namespace std;
 
@@ -60,7 +60,7 @@ int lines() {
     return lines_count;
 }
 
-int inRange(vector<vector<int>>& field, int i, int j, int target) {
+bool inRange(vector<vector<int>>& field, int i, int j, int target) {
      if (target == 0) {
          return(i >= 0 && i < field.size()) && (j >= 0 && j < field[0].size() && field[i][j] != Mine);
      }
@@ -216,31 +216,41 @@ void helpMenu() {
     SetConsoleTextAttribute(consoleWindow, black);
 }
 
-void floodFill(vector<vector<int>>& fieldMine, int x, int y, int replacement)
-{
-    queue<pair<int, int>> q;
-    q.push({ x, y });
-    int target_Main = fieldMine[x][y];
+void gameFieldOutputCheck(vector<vector<int>> fieldMines, int height, int width) {
+    system("cls");
+    short int centerMoveY = centerY;
+    short int centerMoveX = centerX;
 
-    if (target_Main != fieldClosed) {
-        return;
+    for (short int i = 0; i < height; i++) {
+        centerMoveY += 1;
+        SetConsoleCursorPosition(consoleWindow, { centerMoveX, centerMoveY });
+        for (int j = 0; j < width; j++) {
+            centerMoveX += 1;
+            SetConsoleCursorPosition(consoleWindow, { centerMoveX, centerMoveY });
+            SetConsoleTextAttribute(consoleWindow, selected);
+            cout << fieldMines[i][j];
+            SetConsoleTextAttribute(consoleWindow, black);
+        }
+        centerMoveX = centerX;
     }
 
-    while (!q.empty())
+    centerMoveY += 1;
+}
+
+void floodFill(vector<vector<int>>& fieldMine, int x, int y, int replacement)
+{
+    if (fieldMine.size() == 0) {
+        return;
+    }
+    int target = fieldMine[x][y];
+    if (target != fieldClosed) {
+        return;
+    }
+    fieldMine[x][y] = replacement;
+    for (int k = 0; k < 4; k++)
     {
-        pair<int, int> node = q.front();
-        q.pop();
-
-        int x = node.first, y = node.second;
-
-        fieldMine[x][y] = replacement;
-
-        for (int k = 0; k < 4; k++)
-        {
-            if (inRange(fieldMine, x + row[k], y + col[k], target_Main))
-            {
-                q.push({ x + row[k], y + col[k] });
-            }
+        if (inRange(fieldMine, x + row[k], y + col[k], target)) {
+            floodFill(fieldMine, x + row[k], y + col[k], replacement);
         }
     }
 }
@@ -443,7 +453,7 @@ void gameFieldOutputEnd(vector<vector<int>> fieldMines, int height, int width, i
 }
 
 void gameEnterFilling(vector<vector<int>> fieldMines, vector<vector<int>>& fieldView, int i, int j) {
-    for (int k = 0; k < 4; k++) {
+    for (int k = 0; k < 8; k++) {
         if (inRange(fieldView, i + row[k], j + col[k], 0)) {
             fieldView[i + row[k]][j + col[k]] = fieldMines[i + row[k]][j + col[k]];
         }
@@ -476,7 +486,6 @@ void gameMain(int minesCount, vector<vector<int>> fieldMines, vector<vector<int>
         gameFieldOutputView(fieldView, height, width, flags, minesStat, iO, jO);
 
         switch (_getch()) {
-            gameFieldOutputView(fieldView, height, width, flags, minesStat, iO, jO);
             case UP:{
                 if (iO > 0) {
                     iO--;
@@ -975,6 +984,7 @@ void authorization() {
 void menuHello() {
     int menuOption = 0;
     int exit = 1;
+    int che = 0;
 
     do {
         SetConsoleTextAttribute(consoleWindow, selected);
@@ -1036,6 +1046,7 @@ void menuHello() {
         }
 
         switch (_getch()) {
+
             case UP: {
                 menuOption > 0 ? menuOption-- : menuOption = 3;
                 break; 
