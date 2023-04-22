@@ -216,27 +216,6 @@ void helpMenu() {
     SetConsoleTextAttribute(consoleWindow, black);
 }
 
-void gameFieldOutputCheck(vector<vector<int>> fieldMines, int height, int width) {
-    system("cls");
-    short int centerMoveY = centerY;
-    short int centerMoveX = centerX;
-
-    for (short int i = 0; i < height; i++) {
-        centerMoveY += 1;
-        SetConsoleCursorPosition(consoleWindow, { centerMoveX, centerMoveY });
-        for (int j = 0; j < width; j++) {
-            centerMoveX += 1;
-            SetConsoleCursorPosition(consoleWindow, { centerMoveX, centerMoveY });
-            SetConsoleTextAttribute(consoleWindow, selected);
-            cout << fieldMines[i][j];
-            SetConsoleTextAttribute(consoleWindow, black);
-        }
-        centerMoveX = centerX;
-    }
-
-    centerMoveY += 1;
-}
-
 void floodFill(vector<vector<int>>& fieldMine, int x, int y, int replacement)
 {
     if (fieldMine.size() == 0) {
